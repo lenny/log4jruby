@@ -1,0 +1,93 @@
+= Log4jruby
+
+* https://github.com/lenny/log4jruby
+
+== Description:
+
+Log4jruby is a thin wrapper around {Log4j}[http://logging.apache.org/log4j]. 
+It is usable much like {log4r}[http://log4r.rubyforge.org] however your logging 
+is configurable via traditional log4j methods(i.e. with your java logging configuration). 
+This can be very useful if you are building ruby software on top of 
+Java(i.e. calling and extending your Java classes via JRuby) and already use 
+log4j for your java logging.
+
+Log4jruby makes it so you can log through log4j using something that looks mostly like 
+the standard ruby Logger. Filename, line number, and method name are made available to
+your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
+
+
+    log4j.appender.B=org.apache.log4j.ConsoleAppender
+    log4j.appender.B.layout=org.apache.log4j.PatternLayout
+    log4j.appender.B.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
+
+    log4j.logger.jruby=debug,B
+    log4j.additivity.jruby=false
+
+NativeExceptions and Ruby Exceptions are logged with stack traces.
+
+=== Examples
+
+	require 'log4jruby'
+
+	logger = Log4jruby::Logger.new('test', :trace => true, :level => :debug)
+
+	logger.debug("hello world")
+
+	class MyClass
+	  def initialize
+	    @logger = Log4jruby::Logger.new(self.class.name, :level => :debug, :trace => true)
+	  end
+  
+	  def foo
+	    @logger.debug("hello from foo")
+	    raise "foo error"
+	  end
+
+	  def bar
+	    @logger.debug("hello from bar")
+	    foo
+	  end
+
+	  def baz
+	    @logger.debug("hello from baz")
+	    begin
+	      bar
+	    rescue => e
+	      @logger.error(e)
+	    end
+	  end
+	end
+
+	o = MyClass.new
+	o.baz
+
+	logger.debug("changing log level for MyClass to ERROR directly through log4j")
+
+	log4j_logger = Java::org.apache.log4j.Logger.getLogger('jruby.MyClass')
+	log4j_logger.level = Java::org.apache.log4j.Level::ERROR
+
+	logger.debug("calling baz again")
+	o.baz
+	
+=== Example output
+
+	DEBUG examples/simple.rb :7 - hello world
+	DEBUG examples/simple.rb baz:25 - hello from baz
+	DEBUG examples/simple.rb bar:20 - hello from bar
+	DEBUG examples/simple.rb foo:15 - hello from foo
+	ERROR examples/simple.rb baz:29 - foo error
+	  examples/simple.rb:16:in `foo'
+	  examples/simple.rb:21:in `bar'
+	  examples/simple.rb:27:in `baz'
+	  examples/simple.rb:35
+	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR directly through log4j
+	DEBUG examples/simple.rb :42 - calling baz again
+	ERROR examples/simple.rb baz:29 - foo error
+	  examples/simple.rb:16:in `foo'
+	  examples/simple.rb:21:in `bar'
+	  examples/simple.rb:27:in `baz'
+	  examples/simple.rb:43
+
+== Installation
+
+	Just the source code for now.
