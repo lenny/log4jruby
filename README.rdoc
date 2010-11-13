@@ -5,7 +5,7 @@
 == Description:
 
 Log4jruby is a thin wrapper around {Log4j}[http://logging.apache.org/log4j]. 
-It is usable much like {log4r}[http://log4r.rubyforge.org] however your logging 
+It is usable much like {Log4r}[http://log4r.rubyforge.org] however your logging 
 is configurable via traditional log4j methods(i.e. with your java logging configuration). 
 This can be very useful if you are building ruby software on top of 
 Java(i.e. calling and extending your Java classes via JRuby) and already use 
@@ -20,8 +20,8 @@ your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/a
     log4j.appender.Ruby.layout=org.apache.log4j.PatternLayout
     log4j.appender.Ruby.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
 
-    log4j.logger.jruby=info,Ruby  
-	log4j.logger.jruby.MyClass=debug
+    log4j.logger.jruby=info,Ruby
+    log4j.logger.jruby.MyClass=debug
 
 NativeExceptions and Ruby Exceptions are logged with stack traces.
 
@@ -69,6 +69,25 @@ NativeExceptions and Ruby Exceptions are logged with stack traces.
 	logger.debug("calling baz again")
 	o.baz
 	
+	Outputs:
+	
+	DEBUG examples/simple.rb :7 - hello world
+	DEBUG examples/simple.rb baz:25 - hello from baz
+	DEBUG examples/simple.rb bar:20 - hello from bar
+	DEBUG examples/simple.rb foo:15 - hello from foo
+	ERROR examples/simple.rb baz:29 - foo error
+	  examples/simple.rb:16:in `foo'
+	  examples/simple.rb:21:in `bar'
+	  examples/simple.rb:27:in `baz'
+	  examples/simple.rb:35
+	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR directly through log4j
+	DEBUG examples/simple.rb :42 - calling baz again
+	ERROR examples/simple.rb baz:29 - foo error
+	  examples/simple.rb:16:in `foo'
+	  examples/simple.rb:21:in `bar'
+	  examples/simple.rb:27:in `baz'
+	  examples/simple.rb:43
+	
 Just Mix It In
 
 	class MyClass
@@ -88,24 +107,6 @@ Just Mix It In
 	INFO examples/logger_per_class.rb my_class_method:11 - hello from class method
 	INFO examples/logger_per_class.rb my_method:16 - hello from instance method
 	
-=== Example output
-
-	DEBUG examples/simple.rb :7 - hello world
-	DEBUG examples/simple.rb baz:25 - hello from baz
-	DEBUG examples/simple.rb bar:20 - hello from bar
-	DEBUG examples/simple.rb foo:15 - hello from foo
-	ERROR examples/simple.rb baz:29 - foo error
-	  examples/simple.rb:16:in `foo'
-	  examples/simple.rb:21:in `bar'
-	  examples/simple.rb:27:in `baz'
-	  examples/simple.rb:35
-	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR directly through log4j
-	DEBUG examples/simple.rb :42 - calling baz again
-	ERROR examples/simple.rb baz:29 - foo error
-	  examples/simple.rb:16:in `foo'
-	  examples/simple.rb:21:in `bar'
-	  examples/simple.rb:27:in `baz'
-	  examples/simple.rb:43
 
 == Installation
 
