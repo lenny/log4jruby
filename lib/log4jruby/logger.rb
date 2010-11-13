@@ -117,11 +117,11 @@ module Log4jruby
     end
     
     def with_context(method, object, exception = nil, &block)
-      parsed_caller = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
+      file_line_method = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
 
-      MDC.put("fileName", parsed_caller[0].to_s)
-      MDC.put("lineNumber", parsed_caller[1].to_s)
-      MDC.put("methodName", parsed_caller.last.to_s)
+      MDC.put("fileName", file_line_method[0])
+      MDC.put("lineNumber", file_line_method[1])
+      MDC.put("methodName", file_line_method[2].to_s)
 
       begin
         msg, throwable = log4j_args(object, exception, &block)
@@ -161,12 +161,7 @@ module Log4jruby
     end
 
     def parse_caller(at)
-      if /^(.+?):(\d+)(?::in `(.*)')?/ =~ at
-        file = Regexp.last_match[1]
-        line = Regexp.last_match[2].to_i
-        method = Regexp.last_match[3]
-        [file, line, method]
-      end
+      at.match(/^(.+?):(\d+)(?::in `(.*)')?/).captures
     end
 
   end
