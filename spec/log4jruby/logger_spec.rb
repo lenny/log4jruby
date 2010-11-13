@@ -6,30 +6,23 @@ module Log4jruby
   describe Logger do
     MDC = Java::org.apache.log4j.MDC
 
-    subject { @logger = Logger.new('Test') }
+    subject { Logger.new('Test', :level => :debug) }
 
     before do
       @log4j = subject.log4j_logger
-      @log4j.stub(:isDebugEnabled).and_return(true)
     end
 
     describe "mapping to Log4j Logger names" do
       it "should prepend 'jruby.' to specified name" do
-        Java::org.apache.log4j.Logger.should_receive(:getLogger).
-        with("jruby.MyLogger")
-
-        Logger.new('MyLogger')
+        Logger.new('MyLogger').log4j_logger.name.should == 'jruby.MyLogger'
       end
 
       it "should translate :: into ." do
-        Java::org.apache.log4j.Logger.should_receive(:getLogger).
-        with("jruby.MyModule.MyClass")
-
-        Logger.new('MyModule::MyClass')
+        Logger.new('MyModule::MyClass').log4j_logger.name.should == "jruby.MyModule.MyClass"
       end
     end
     
-    specify "it should accept attributes hash when instantiated" do
+    specify "it should accept attributes hash in initalizer" do
       logger = Logger.new('test', :level => :debug, :trace => true)
       logger.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
       logger.trace.should == true
@@ -42,13 +35,10 @@ module Log4jruby
     end
 
     specify "backing log4j Logger should be accessible via :log4j_logger" do
-      log4j = mock('Log4j.Logger')
-      Java::org.apache.log4j.Logger.stub(:getLogger).and_return(log4j)
-
-      Logger.new('X').log4j_logger.should be_equal(log4j)
+      Logger.new('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
     end
     
-    describe "log level shortcuts" do
+    describe "log level setter" do
       it "should accept :debug" do
         subject.level = :debug
         subject.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
@@ -75,7 +65,7 @@ module Log4jruby
       subject.debug('test')  
     end
 
-    it "should stringify anything passed as first arg" do
+    it "should stringify non-exception argument" do
       @log4j.should_receive(:debug).with('7', nil)
       subject.debug(7)
     end  
@@ -85,7 +75,7 @@ module Log4jruby
       subject.debug { 'test' }
     end
 
-    it "should use global setting for :trace if no not set explicitly for logger" do
+    it "should use global setting for :trace if not set explicitly for logger" do
       Logger.stub(:trace).and_return(true)
 
       Logger.new('test').tracing?.should == true
@@ -184,7 +174,6 @@ module Log4jruby
       end
     end
 
-
     context "with unwrapped java exception" do
       it "should forward to log4j (msg, Throwable) signature" do 
         @log4j.should_receive(:debug).
@@ -194,7 +183,7 @@ module Log4jruby
       end
     end
 
-    context "ruby exception" do
+    context "with ruby exception" do
       it "should stringify message and backtrace" do
         ruby_error = RuntimeError.new("my message")
         ruby_error.stub(:backtrace).and_return(["line1", "line2"])
@@ -238,14 +227,14 @@ module Log4jruby
     end
 
     describe '#error' do
-      it "should always do parameter evaluation even when given block" do
+      it "should always do parameter evaluation even when given a block" do
         @log4j.should_receive(:error).with("message", nil)
         subject.error { 'message' }
       end
     end
 
     describe '#fatal' do
-      it "should always do parameter evaluation even when given block" do
+      it "should always do parameter evaluation even when given a block" do
         @log4j.should_receive(:fatal).with("message", nil)
         subject.fatal { 'message' }
       end
