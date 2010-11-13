@@ -6,7 +6,7 @@ module Log4jruby
   describe Logger do
     MDC = Java::org.apache.log4j.MDC
 
-    subject { Logger.new('Test', :level => :debug) }
+    subject { Logger.get('Test', :level => :debug) }
 
     before do
       @log4j = subject.log4j_logger
@@ -14,31 +14,45 @@ module Log4jruby
 
     describe "mapping to Log4j Logger names" do
       it "should prepend 'jruby.' to specified name" do
-        Logger.new('MyLogger').log4j_logger.name.should == 'jruby.MyLogger'
+        Logger.get('MyLogger').log4j_logger.name.should == 'jruby.MyLogger'
       end
 
-      it "should translate :: into ." do
-        Logger.new('MyModule::MyClass').log4j_logger.name.should == "jruby.MyModule.MyClass"
+      it "should translate :: into . (e.g. A::B::C becomes A.B.C)" do
+        Logger.get('A::B::C').log4j_logger.name.should == "jruby.A.B.C"
       end
     end
     
-    specify "it should accept attributes hash in initalizer" do
-      logger = Logger.new('test', :level => :debug, :trace => true)
-      logger.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
-      logger.trace.should == true
+    describe ".get" do
+      it "should return one logger per name" do
+        Logger.get('test').should be_equal(Logger.get('test'))
+      end
+      
+      it "should accept attributes hash" do
+        logger = Logger.get('test', :level => :debug, :trace => true)
+        logger.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
+        logger.trace.should == true
+      end
     end
 
     describe "root logger" do
       it "should be accessible via .root" do
         Logger.root.log4j_logger.name.should == 'jruby'
       end
+      
+      it "should always return same object" do
+        Logger.root.should be_equal(Logger.root)
+      end
+    end
+    
+    specify "there is only one logger per name(retrievable via Logger[name])" do
+      Logger["A"].should be_equal(Logger["A"])
     end
 
     specify "backing log4j Logger should be accessible via :log4j_logger" do
-      Logger.new('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
+      Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
     end
     
-    describe "log level setter" do
+    describe "#level =" do
       it "should accept :debug" do
         subject.level = :debug
         subject.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
@@ -78,7 +92,7 @@ module Log4jruby
     it "should use global setting for :trace if not set explicitly for logger" do
       Logger.stub(:trace).and_return(true)
 
-      Logger.new('test').tracing?.should == true
+      Logger.get('test').tracing?.should == true
     end
 
     context "with tracing on" do
@@ -131,6 +145,8 @@ module Log4jruby
     end
 
     context "with tracing off" do
+      before { subject.trace = false }
+      
       it "should set MDC with blank values" do
         @log4j.should_receive(:debug) do
           MDC.get('fileName').should == ''
@@ -258,7 +274,21 @@ module Log4jruby
       end
     end
 
-
+    describe "#attributes =" do
+      it "should do nothing(i.e. not bomb) if given nil" do
+        subject.attributes = nil
+      end
+      
+      it "should set values with matching setters" do
+        subject.trace = false
+        subject.attributes = {:trace => true}
+        subject.trace.should == true
+      end
+      
+      it "should ignore values without matching setter" do
+        subject.attributes = {:no_such_attribute => 'ignore' }
+      end
+    end
   end
 
 end

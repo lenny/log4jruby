@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/setup'
 require 'log4jruby'
 require 'log4jruby/logging'
 
-class MyClass
+class A
   include Log4jruby::Logging
   
   class << self
@@ -17,11 +17,23 @@ class MyClass
   end
 end
 
-MyClass.logger.trace = true
-MyClass.logger.level = :info
+class B < A
+end
 
-MyClass.my_class_method
-MyClass.new.my_method
+class C < B
+end
+
+A.logger.trace = true
+A.logger.level = :info
+
+A.my_class_method
+A.new.my_method
+
+puts A.logger.log4j_logger.name
+puts B.logger.log4j_logger.name
+puts C.logger.log4j_logger.name
+
+
 
 
 

@@ -9,25 +9,45 @@ module Log4jruby
     class << self
       attr_accessor :trace
 
+      def[](name)
+        name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
+       
+        log4j = Java::org.apache.log4j.Logger.getLogger(name)
+        log4jruby = log4j.instance_variable_get(:@log4jruby)
+        
+        unless log4jruby
+          log4jruby = new(log4j)
+        end
+        
+        log4jruby
+      end
+      
+      def get(name, values = {})
+        logger = self[name]
+        logger.attributes = values
+        logger
+      end
+      
       def tracing?
         trace == true
       end
 
       def root
-        @root ||= new(nil)
-      end
+        log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
+        log4jruby = log4j.instance_variable_get(:@log4jruby)
+        unless log4jruby
+          log4jruby = new(log4j)
+        end
+        log4jruby
+      end   
     end
 
-    def initialize(name, values = {})
-      name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
-      @logger = Java::org.apache.log4j.Logger.getLogger(name)
-      self.attributes = values
-    end
-    
     def attributes=(values)
-      values.each_pair do |k, v|
-        setter = "#{k}="
-        send(setter, v) if respond_to?(setter)
+      if values
+        values.each_pair do |k, v|
+          setter = "#{k}="
+          send(setter, v) if respond_to?(setter)
+        end
       end
     end
     
@@ -90,7 +110,12 @@ module Log4jruby
 
     private
 
-
+    def initialize(logger, values = {})
+      @logger = logger  
+      @logger.instance_variable_set(:@log4jruby, self)
+      self.attributes = values
+    end
+    
     def with_context(method, object, exception = nil, &block)
       parsed_caller = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
 

@@ -4,7 +4,7 @@ module Log4jruby
   module Logging
     def self.included(klass)
       def klass.logger
-        @logger ||= Logger.new(name)
+        @logger ||= Logger.get(name)
       end
     end
 
