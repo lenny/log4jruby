@@ -16,12 +16,12 @@ the standard ruby Logger. Filename, line number, and method name are made availa
 your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
 
 
-    log4j.appender.B=org.apache.log4j.ConsoleAppender
-    log4j.appender.B.layout=org.apache.log4j.PatternLayout
-    log4j.appender.B.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
+    log4j.appender.Ruby=org.apache.log4j.ConsoleAppender
+    log4j.appender.Ruby.layout=org.apache.log4j.PatternLayout
+    log4j.appender.Ruby.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
 
-    log4j.logger.jruby=debug,B
-    log4j.additivity.jruby=false
+    log4j.logger.jruby=info,Ruby  
+	log4j.logger.jruby.MyClass=debug
 
 NativeExceptions and Ruby Exceptions are logged with stack traces.
 
@@ -68,6 +68,25 @@ NativeExceptions and Ruby Exceptions are logged with stack traces.
 
 	logger.debug("calling baz again")
 	o.baz
+	
+Just Mix It In
+
+	class MyClass
+	  include Log4jruby::Logging
+  
+	  class << self
+	    def my_class_method
+	      logger.info("hello from class method")
+	    end
+	  end
+  
+	  def my_method
+	    logger.info("hello from instance method")
+	  end
+	end
+	
+	INFO examples/logger_per_class.rb my_class_method:11 - hello from class method
+	INFO examples/logger_per_class.rb my_method:16 - hello from instance method
 	
 === Example output
 
