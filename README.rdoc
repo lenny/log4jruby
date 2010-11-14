@@ -108,6 +108,7 @@ Mix It In
 	INFO examples/logger_per_class.rb my_class_method:11 - hello from class method
 	INFO examples/logger_per_class.rb my_method:16 - hello from instance method
 	
+See more in %{log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/examples/]
 
 == Installation
 
