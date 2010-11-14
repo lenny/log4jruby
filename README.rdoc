@@ -111,4 +111,10 @@ Mix It In
 
 == Installation
 
-	Just the source code for now.
+    No published gem yet. For now build gem locally or use Bundler.
+
+	> git clone git://github.com/lenny/log4jruby.git
+	> cd log4jruby
+	> gem build log4jruby.gemspec
+	> gem install log4jruby-0.1.0.gem
+	
