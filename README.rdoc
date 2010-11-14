@@ -64,10 +64,10 @@ NativeExceptions and Ruby Exceptions are logged with stack traces.
 
 	logger.debug("changing log level for MyClass to ERROR directly through log4j")
 
-    myclass_logger = Log4jruby::Logger['MyClass']
-    myclass_logger.level = :error
+ 	myclass_logger = Log4jruby::Logger['MyClass']
+ 	myclass_logger.level = :error
 
-    logger.debug("calling baz again")
+	logger.debug("calling baz again")
 	o.baz
 	
 	Outputs:
