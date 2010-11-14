@@ -130,7 +130,7 @@ module Log4jruby
       self.attributes = values
     end
     
-    def with_context(method, object, exception = nil) # :nodoc:
+    def with_context(method, object, exception = nil, &block) # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
 
       MDC.put("fileName", file_line_method[0])
@@ -138,7 +138,7 @@ module Log4jruby
       MDC.put("methodName", file_line_method[2].to_s)
 
       begin
-        msg, throwable = log4j_args(object, exception)
+        msg, throwable = log4j_args(object, exception, &block)
 
         @logger.send(method, msg, throwable)
       ensure

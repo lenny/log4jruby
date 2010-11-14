@@ -1,7 +1,7 @@
 require 'log4jruby'
 
 module Log4jruby
-  module Logging
+  module LoggerForClass
     
     def self.included(klass) # :nodoc:
       def klass.logger

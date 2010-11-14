@@ -67,7 +67,7 @@ NativeExceptions and Ruby Exceptions are logged with stack traces.
     myclass_logger = Log4jruby::Logger['MyClass']
     myclass_logger.level = :error
 
-	logger.debug("calling baz again")
+    logger.debug("calling baz again")
 	o.baz
 	
 	Outputs:
@@ -89,10 +89,10 @@ NativeExceptions and Ruby Exceptions are logged with stack traces.
 	  examples/simple.rb:27:in `baz'
 	  examples/simple.rb:43
 	
-Just Mix It In
+Mix It In
 
 	class MyClass
-	  include Log4jruby::Logging
+	  include Log4jruby::LoggerForClass
   
 	  class << self
 	    def my_class_method

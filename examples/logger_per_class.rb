@@ -1,10 +1,10 @@
 require File.dirname(__FILE__) + '/setup'
 
 require 'log4jruby'
-require 'log4jruby/logging'
+require 'log4jruby/logger_for_class'
 
 class A
-  include Log4jruby::Logging
+  include Log4jruby::LoggerForClass
   
   class << self
     def my_class_method
