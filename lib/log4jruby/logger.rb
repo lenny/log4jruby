@@ -1,14 +1,24 @@
 
 module Log4jruby
+  
+  # Author::    Lenny Marks
+  #
+  # Wrapper around org.apache.log4j.Logger with interface similar to standard ruby Logger.
+  #
+  # * Ruby and Java exceptions are logged with backtraces.
+  # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber}) 
   class Logger
-    BLANK_CALLER = ['', '', '']
-    MDC = Java::org.apache.log4j.MDC
-
+    BLANK_CALLER = ['', '', ''] #:nodoc:
+    MDC = Java::org.apache.log4j.MDC 
+    
+    # turn tracing on to make fileName, lineNumber, and methodName available to 
+    # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
     attr_accessor :trace
 
     class << self
       attr_accessor :trace
 
+      # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
        
@@ -22,6 +32,7 @@ module Log4jruby
         log4jruby
       end
       
+      # same as [] but acceptions attributes
       def get(name, values = {})
         logger = self[name]
         logger.attributes = values
@@ -32,6 +43,7 @@ module Log4jruby
         trace == true
       end
 
+      # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
         log4jruby = log4j.instance_variable_get(:@log4jruby)
@@ -51,6 +63,7 @@ module Log4jruby
       end
     end
     
+    # Shortcut for setting log levels. (:debug, :info, :warn, :error)
     def level=(level)
       @logger.level = case level
       when :debug
@@ -100,6 +113,7 @@ module Log4jruby
       with_context(:fatal, msg, error)
     end
 
+    # return org.apache.log4j.Logger instance backing this Logger
     def log4j_logger
       @logger
     end
@@ -110,13 +124,13 @@ module Log4jruby
 
     private
 
-    def initialize(logger, values = {})
+    def initialize(logger, values = {}) # :nodoc:
       @logger = logger  
       @logger.instance_variable_set(:@log4jruby, self)
       self.attributes = values
     end
     
-    def with_context(method, object, exception = nil, &block)
+    def with_context(method, object, exception = nil) # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
 
       MDC.put("fileName", file_line_method[0])
@@ -124,7 +138,7 @@ module Log4jruby
       MDC.put("methodName", file_line_method[2].to_s)
 
       begin
-        msg, throwable = log4j_args(object, exception, &block)
+        msg, throwable = log4j_args(object, exception)
 
         @logger.send(method, msg, throwable)
       ensure
@@ -134,7 +148,7 @@ module Log4jruby
       end
     end
 
-    def log4j_args(object, exception, &block)
+    def log4j_args(object, exception) # :nodoc:
       msg = ''
 
       if exception
@@ -160,7 +174,7 @@ module Log4jruby
       [msg, exception]
     end
 
-    def parse_caller(at)
+    def parse_caller(at) # :nodoc:
       at.match(/^(.+?):(\d+)(?::in `(.*)')?/).captures
     end
 
