@@ -16,8 +16,6 @@ module Log4jruby
     attr_accessor :trace
 
     class << self
-      attr_accessor :trace
-
       # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
@@ -39,10 +37,6 @@ module Log4jruby
         logger
       end
       
-      def tracing?
-        trace == true
-      end
-
       # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
@@ -119,9 +113,17 @@ module Log4jruby
     end
 
     def tracing?
-      trace.nil? ? Logger.tracing? : (trace == true)
+      if trace.nil?      
+        !parent.nil? && parent.tracing?
+      else
+        trace == true
+      end
     end
-
+    
+    def parent
+      log4j_logger.parent.instance_variable_get(:@log4jruby)
+    end
+    
     private
 
     def initialize(logger, values = {}) # :nodoc:

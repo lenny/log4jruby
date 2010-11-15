@@ -89,10 +89,33 @@ module Log4jruby
       subject.debug { 'test' }
     end
 
-    it "should use global setting for :trace if not set explicitly for logger" do
-      Logger.stub(:trace).and_return(true)
-
-      Logger.get('test').tracing?.should == true
+    describe 'tracing' do
+      it "should use setting for logger if set" do
+        subject.trace = false
+        subject.tracing?.should be_false
+      end
+      
+      it "should use value from first ancestor with setting if not set" do
+        loggera = Logger['A']
+        loggerb = Logger['A::B']
+        loggerc = Logger['A::B::C']
+            
+        loggera.trace = true
+        
+        loggerc.tracing?.should be_true
+        
+        loggerb.trace = false
+        
+        loggerc.tracing?.should be_false 
+      end
+      
+      it "should be false if not set at all" do
+        loggera = Logger['A']
+        loggerb = Logger['A::B']
+        loggerc = Logger['A::B::C']
+            
+        loggerc.tracing?.should be_false
+      end
     end
 
     context "with tracing on" do
