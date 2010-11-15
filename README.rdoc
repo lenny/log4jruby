@@ -4,18 +4,10 @@
 
 == Description:
 
-Log4jruby is a thin wrapper around {Log4j}[http://logging.apache.org/log4j]. 
-It is usable much like {Log4r}[http://log4r.rubyforge.org] however your logging 
-is configurable via traditional log4j methods(i.e. with your java logging configuration). 
-This can be very useful if you are building ruby software on top of 
-Java(i.e. calling and extending your Java classes via JRuby) and already use 
-log4j for your java logging.
+Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/log4j/1.2/apidocs/index.html]. It is geared more toward those who are using JRuby to integrate with and build on top of Java code that uses Log4j. The <tt>Log4jruby::Logger</tt> provides an interface much like the standard ruby {Logger}[http://ruby-doc.org/core/classes/Logger.html]. Your ruby loggers are given a <tt>.jruby</tt> prefix and can be configured along with the loggers for your Java code. 
 
-Log4jruby makes it so you can log through log4j using something that looks mostly like 
-the standard ruby Logger. Filename, line number, and method name are made available to
-your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
-
-The root Log4jruby logger is .jruby 
+* Filename, line number, and method name are made available(if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
+* Ruby and Java Exceptions(i.e NativeException) are logged with stack traces.
 
     log4j.appender.Ruby=org.apache.log4j.ConsoleAppender
     log4j.appender.Ruby.layout=org.apache.log4j.PatternLayout
@@ -23,8 +15,6 @@ The root Log4jruby logger is .jruby
 
     log4j.logger.jruby=info,Ruby
     log4j.logger.jruby.MyClass=debug
-
-NativeExceptions and Ruby Exceptions are logged with stack traces.
 
 === Examples
 
@@ -118,4 +108,8 @@ See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/e
 	> cd log4jruby
 	> gem build log4jruby.gemspec
 	> gem install log4jruby-0.1.0.gem
+	
+== Rails
+
+	config.logger = Log4jruby::Logger.get('MyApp')
 	
