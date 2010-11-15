@@ -34,7 +34,7 @@ end
 o = MyClass.new
 o.baz
 
-logger.debug("changing log level for MyClass to ERROR directly through log4j")
+logger.debug("changing log level for MyClass to ERROR")
 
 myclass_logger = Log4jruby::Logger['MyClass']
 myclass_logger.level = :error

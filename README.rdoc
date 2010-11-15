@@ -4,10 +4,11 @@
 
 == Description:
 
-Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/log4j/1.2/apidocs/index.html]. It is geared more toward those who are using JRuby to integrate with and build on top of Java code that uses Log4j. The <tt>Log4jruby::Logger</tt> provides an interface much like the standard ruby {Logger}[http://ruby-doc.org/core/classes/Logger.html]. Your ruby loggers are given a <tt>.jruby</tt> prefix and can be configured along with the loggers for your Java code. 
+Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/log4j/1.2/apidocs/index.html]. It is geared more toward those who are using JRuby to integrate with and build on top of Java code that uses Log4j. The <tt>Log4jruby::Logger</tt> provides an interface much like the standard ruby {Logger}[http://ruby-doc.org/core/classes/Logger.html]. Logging is configured via traditional Log4j methods.
 
 * Filename, line number, and method name are made available(if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
 * Ruby and Java Exceptions(i.e NativeException) are logged with stack traces.
+* Logging config for your ruby code can be added to your existing configuration. Ruby logger names are mapped to dot separated names prefixed with <tt>.jruby</tt>
 
     log4j.appender.Ruby=org.apache.log4j.ConsoleAppender
     log4j.appender.Ruby.layout=org.apache.log4j.PatternLayout
@@ -52,7 +53,7 @@ Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/
 	o = MyClass.new
 	o.baz
 
-	logger.debug("changing log level for MyClass to ERROR directly through log4j")
+	logger.debug("changing log level for MyClass to ERROR")
 
  	myclass_logger = Log4jruby::Logger['MyClass']
  	myclass_logger.level = :error
@@ -71,7 +72,7 @@ Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/
 	  examples/simple.rb:21:in `bar'
 	  examples/simple.rb:27:in `baz'
 	  examples/simple.rb:35
-	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR directly through log4j
+	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR
 	DEBUG examples/simple.rb :42 - calling baz again
 	ERROR examples/simple.rb baz:29 - foo error
 	  examples/simple.rb:16:in `foo'
