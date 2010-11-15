@@ -26,7 +26,7 @@ module MyModule
 
 end
 
-MyModule::A.logger.attributes = {:trace => true, :level => :info }
+MyModule::A.logger.attributes = {:tracing => true, :level => :info }
 
 MyModule::A.my_class_method
 MyModule::A.new.my_method

@@ -2,13 +2,13 @@ require File.dirname(__FILE__) + '/setup'
 
 require 'log4jruby'
 
-logger = Log4jruby::Logger.get('test', :trace => true, :level => :debug)
+logger = Log4jruby::Logger.get('test', :tracing => true, :level => :debug)
 
 logger.debug("hello world")
 
 class MyClass
   def initialize
-    @logger = Log4jruby::Logger.get(self.class.name, :level => :debug, :trace => true)
+    @logger = Log4jruby::Logger.get(self.class.name, :level => :debug, :tracing => true)
   end
   
   def foo

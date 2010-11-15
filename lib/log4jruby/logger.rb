@@ -13,7 +13,7 @@ module Log4jruby
     
     # turn tracing on to make fileName, lineNumber, and methodName available to 
     # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
-    attr_accessor :trace
+    attr_accessor :tracing
 
     class << self
       # get Logger for name
@@ -113,10 +113,10 @@ module Log4jruby
     end
 
     def tracing?
-      if trace.nil?      
+      if tracing.nil?      
         !parent.nil? && parent.tracing?
       else
-        trace == true
+        tracing == true
       end
     end
     

@@ -28,9 +28,9 @@ module Log4jruby
       end
       
       it "should accept attributes hash" do
-        logger = Logger.get('test', :level => :debug, :trace => true)
+        logger = Logger.get('test', :level => :debug, :tracing => true)
         logger.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
-        logger.trace.should == true
+        logger.tracing.should == true
       end
     end
 
@@ -91,7 +91,7 @@ module Log4jruby
 
     describe 'tracing' do
       it "should use setting for logger if set" do
-        subject.trace = false
+        subject.tracing = false
         subject.tracing?.should be_false
       end
       
@@ -100,11 +100,11 @@ module Log4jruby
         loggerb = Logger['A::B']
         loggerc = Logger['A::B::C']
             
-        loggera.trace = true
+        loggera.tracing = true
         
         loggerc.tracing?.should be_true
         
-        loggerb.trace = false
+        loggerb.tracing = false
         
         loggerc.tracing?.should be_false 
       end
@@ -120,7 +120,7 @@ module Log4jruby
 
     context "with tracing on" do
       before do
-        subject.trace = true
+        subject.tracing = true
       end
 
       it "should set MDC lineNumber for duration of invocation" do
@@ -168,7 +168,7 @@ module Log4jruby
     end
 
     context "with tracing off" do
-      before { subject.trace = false }
+      before { subject.tracing = false }
       
       it "should set MDC with blank values" do
         @log4j.should_receive(:debug) do
@@ -303,9 +303,9 @@ module Log4jruby
       end
       
       it "should set values with matching setters" do
-        subject.trace = false
-        subject.attributes = {:trace => true}
-        subject.trace.should == true
+        subject.tracing = false
+        subject.attributes = {:tracing => true}
+        subject.tracing.should == true
       end
       
       it "should ignore values without matching setter" do
