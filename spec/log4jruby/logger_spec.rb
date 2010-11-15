@@ -260,7 +260,7 @@ module Log4jruby
 
     describe '#warn' do
       it "should avoid parameter evaluation if given block and warn level is not enabled" do
-        @log4j.should_receive(:isWarnEnabled).and_return(false)
+        @log4j.should_receive(:isEnabledFor).and_return(false)
         subject.warn { raise 'block was called' } 
       end
     end

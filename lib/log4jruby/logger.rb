@@ -86,7 +86,7 @@ module Log4jruby
     end
 
     def warn(object = nil, &block)
-      if @logger.isWarnEnabled
+      if @logger.isEnabledFor(Java::org.apache.log4j.Priority::WARN)
         with_context(:warn, object, &block)
       end
     end
