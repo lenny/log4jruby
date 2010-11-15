@@ -3,35 +3,37 @@ require File.dirname(__FILE__) + '/setup'
 require 'log4jruby'
 require 'log4jruby/logger_for_class'
 
-class A
-  include Log4jruby::LoggerForClass
+logger = Log4jruby::Logger.root
+logger.level = :debug
+
+module MyModule
+  class A
+    include Log4jruby::LoggerForClass
   
-  class << self
-    def my_class_method
-      logger.info("hello from class method")
+    class << self
+      def my_class_method
+        logger.info("hello from class method")
+      end
+    end
+  
+    def my_method
+      logger.info("hello from instance method")
     end
   end
-  
-  def my_method
-    logger.info("hello from instance method")
+
+  class B < A
   end
+
 end
 
-class B < A
-end
+MyModule::A.logger.attributes = {:trace => true, :level => :info }
 
-class C < B
-end
+MyModule::A.my_class_method
+MyModule::A.new.my_method
 
-A.logger.trace = true
-A.logger.level = :info
+logger.debug("Log4j Logger name for MyModule::A - #{MyModule::A.logger.log4j_logger.name}")
+logger.debug("Log4j Logger name for MyModule::B - #{MyModule::B.logger.log4j_logger.name}")
 
-A.my_class_method
-A.new.my_method
-
-puts A.logger.log4j_logger.name
-puts B.logger.log4j_logger.name
-puts C.logger.log4j_logger.name
 
 
 
