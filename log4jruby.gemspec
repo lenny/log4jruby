@@ -2,8 +2,6 @@
 lib = File.expand_path('../lib/', __FILE__)
 $:.unshift lib unless $:.include?(lib)
 
-require 'capybara/version'
-
 Gem::Specification.new do |s|
   s.name = "log4jruby"
   s.version = '0.1.0'
