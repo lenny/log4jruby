@@ -99,7 +99,7 @@ Mix It In
 	INFO examples/logger_per_class.rb my_class_method:11 - hello from class method
 	INFO examples/logger_per_class.rb my_method:16 - hello from instance method
 	
-See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/examples/]
+See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/examples/]. They should be runnable from the source.
 
 == Installation
 
@@ -110,7 +110,11 @@ See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/e
 	> gem build log4jruby.gemspec
 	> gem install log4jruby-0.1.0.gem
 	
-== Rails
+== Usage
 
-	config.logger = Log4jruby::Logger.get('MyApp')
-	
+The primary use case(i.e. mine) for this library is that you are already up and running with Log4j and now you want to use it for your Ruby code too. There is not much help here for configuration. In our environment, we deploy Rails apps that call and extend Java code into Tomcat as WARs and use a log4j.properties to configure. For the most part, all there is to using log4jruby is making sure the log4j jar is <tt>required</tt> and that Log4j is at least minimally configured(e.g. log4j.properties in the CLASSPATH). The examples should give you the idea.
+
+=== Rails
+
+config.logger = Log4jruby::Logger.get('MyApp')
+
