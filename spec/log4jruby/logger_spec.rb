@@ -106,9 +106,21 @@ module Log4jruby
         
         loggerb.tracing = false
         
-        loggerc.tracing?.should be_false 
+        loggera.tracing?.should be_true
+        loggerb.tracing?.should be_false
+        loggerc.tracing?.should be_false  
       end
       
+      it "should use value from root if not set and no parent" do
+        logger = Logger['value_from_root_if_not_set_and_no_parent']
+            
+        logger.tracing?.should be_false
+        
+        Logger.root.tracing = true
+        
+        logger.tracing?.should be_true
+      end
+    
       it "should be false if not set at all" do
         loggera = Logger['A']
         loggerb = Logger['A::B']

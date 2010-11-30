@@ -1,4 +1,3 @@
-
 module Log4jruby
   
   # Author::    Lenny Marks
@@ -16,12 +15,16 @@ module Log4jruby
     attr_accessor :tracing
 
     class << self
+      def logger_mapping
+        @logger_mapping ||= {}
+      end
+      
       # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
        
         log4j = Java::org.apache.log4j.Logger.getLogger(name)
-        log4jruby = log4j.instance_variable_get(:@log4jruby)
+        log4jruby = logger_mapping[log4j]
         
         unless log4jruby
           log4jruby = new(log4j)
@@ -40,14 +43,15 @@ module Log4jruby
       # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
-        log4jruby = log4j.instance_variable_get(:@log4jruby)
+        
+        log4jruby = logger_mapping[log4j]
         unless log4jruby
           log4jruby = new(log4j)
         end
         log4jruby
       end   
     end
-
+    
     def attributes=(values)
       if values
         values.each_pair do |k, v|
@@ -113,22 +117,32 @@ module Log4jruby
     end
 
     def tracing?
-      if tracing.nil?      
-        !parent.nil? && parent.tracing?
+      if tracing.nil?
+        if parent == Logger.root
+          Logger.root.tracing == true
+        else 
+         parent.tracing?
+        end
       else
         tracing == true
       end
     end
     
     def parent
-      log4j_logger.parent.instance_variable_get(:@log4jruby)
+      logger_mapping[log4j_logger.parent] || Logger.root
     end
     
     private
+    
+    def logger_mapping
+      Logger.logger_mapping
+    end
 
     def initialize(logger, values = {}) # :nodoc:
       @logger = logger  
-      @logger.instance_variable_set(:@log4jruby, self)
+     
+      Logger.logger_mapping[@logger] = self
+      
       self.attributes = values
     end
     
