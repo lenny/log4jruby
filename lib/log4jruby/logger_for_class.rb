@@ -9,6 +9,14 @@ module Log4jruby
       def klass.logger
         @logger ||= Logger.get(name)
       end
+      
+      def klass.logger=(logger)
+        @logger = logger
+      end
+      
+      def klass.set_logger(name, options = {})
+        @logger = Logger.get(name, options)
+      end
     end
 
     def logger
