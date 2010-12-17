@@ -76,21 +76,25 @@ module Log4jruby
         raise NotImplementedError
       end
     end
+    
+    def level
+      @logger.level
+    end
 
     def debug(object = nil, &block)
-      if @logger.isDebugEnabled
+      if debug?
         with_context(:debug, object, &block)
       end
     end
 
     def info(object = nil, &block)
-      if @logger.isInfoEnabled
+      if info?
         with_context(:info, object, &block)
       end
     end
 
     def warn(object = nil, &block)
-      if @logger.isEnabledFor(Java::org.apache.log4j.Priority::WARN)
+      if warn?
         with_context(:warn, object, &block)
       end
     end
@@ -115,7 +119,19 @@ module Log4jruby
     def log4j_logger
       @logger
     end
-
+    
+    def debug?
+      @logger.isDebugEnabled
+    end
+    
+    def info?
+      @logger.isInfoEnabled
+    end
+    
+    def warn?
+      @logger.isEnabledFor(Java::org.apache.log4j.Priority::WARN)
+    end
+    
     def tracing?
       if tracing.nil?
         if parent == Logger.root

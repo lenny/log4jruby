@@ -52,25 +52,37 @@ module Log4jruby
       Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
     end
     
+    describe 'Rails logger compatabity' do
+      it "should respond to <level>?" do
+        [:debug, :info, :warn].each do |level|
+          subject.respond_to?("#{level}?").should == true
+        end
+      end
+      
+      it "should respond to :level" do
+        subject.respond_to?(:level).should == true
+      end
+    end
+    
     describe "#level =" do
       it "should accept :debug" do
         subject.level = :debug
-        subject.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
+        subject.level.should == Java::org.apache.log4j.Level::DEBUG
       end
       
       it "should accept :info" do
         subject.level = :info
-        subject.log4j_logger.level.should == Java::org.apache.log4j.Level::INFO
+        subject.level.should == Java::org.apache.log4j.Level::INFO
       end
       
       it "should accept :warn" do
         subject.level = :warn
-        subject.log4j_logger.level.should == Java::org.apache.log4j.Level::WARN
+        subject.level.should == Java::org.apache.log4j.Level::WARN
       end
       
       it "should accept :error" do
         subject.level = :error
-        subject.log4j_logger.level.should == Java::org.apache.log4j.Level::ERROR
+        subject.level.should == Java::org.apache.log4j.Level::ERROR
       end
     end
 
