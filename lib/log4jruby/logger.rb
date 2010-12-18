@@ -1,3 +1,5 @@
+require 'log4jruby/log4j_args'
+
 module Log4jruby
   
   # Author::    Lenny Marks
@@ -80,39 +82,43 @@ module Log4jruby
     def level
       @logger.level
     end
+    
+    def flush
+      #rails compatability
+    end
 
     def debug(object = nil, &block)
       if debug?
-        with_context(:debug, object, &block)
+        send_to_log4j(:debug, object, nil, &block)
       end
     end
 
     def info(object = nil, &block)
       if info?
-        with_context(:info, object, &block)
+        send_to_log4j(:info, object, nil, &block)
       end
     end
 
     def warn(object = nil, &block)
       if warn?
-        with_context(:warn, object, &block)
+        send_to_log4j(:warn, object, nil, &block)
       end
     end
 
     def error(object = nil, &block)
-      with_context(:error, object, &block)
+      send_to_log4j(:error, object, nil, &block)
     end
 
     def log_error(msg, error)
-      with_context(:error, msg, error)
+      send_to_log4j(:error, msg, error)
     end
 
     def fatal(object = nil, &block)
-      with_context(:fatal, object, &block)
+      send_to_log4j(:fatal, object, nil, &block)
     end
 
     def log_fatal(msg, error)
-      with_context(:fatal, msg, error)
+      send_to_log4j(:fatal, msg, error)
     end
 
     # return org.apache.log4j.Logger instance backing this Logger
@@ -162,17 +168,15 @@ module Log4jruby
       self.attributes = values
     end
     
-    def with_context(method, object, exception = nil, &block) # :nodoc:
-      file_line_method = tracing? ? parse_caller(caller(2).first) : BLANK_CALLER
+    def with_context # :nodoc:
+      file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
 
       MDC.put("fileName", file_line_method[0])
       MDC.put("lineNumber", file_line_method[1])
       MDC.put("methodName", file_line_method[2].to_s)
 
       begin
-        msg, throwable = log4j_args(object, exception, &block)
-
-        @logger.send(method, msg, throwable)
+        yield
       ensure
         MDC.remove("fileName")
         MDC.remove("lineNumber")
@@ -180,30 +184,11 @@ module Log4jruby
       end
     end
 
-    def log4j_args(object, exception) # :nodoc:
-      msg = ''
-
-      if exception
-        msg << object.to_s
-      else
-        exception = block_given? ? yield : object
+    def send_to_log4j(level, object, error, &block)
+      msg, throwable = Log4jArgs.convert(object, error, &block)
+      with_context do
+        @logger.send(level, msg, throwable)
       end
-
-      if exception.is_a?(NativeException)
-        exception = exception.cause
-      elsif exception.is_a?(::Exception)
-        if msg.empty?
-          msg = "#{exception}\n  " + exception.backtrace.join("\n  ")
-        else
-          msg << "\n#{exception}\n  " + exception.backtrace.join("\n  ")
-        end
-        exception = nil
-      elsif !exception.is_a?(java.lang.Throwable)
-        msg << exception.to_s
-        exception = nil
-      end
-
-      [msg, exception]
     end
 
     def parse_caller(at) # :nodoc:

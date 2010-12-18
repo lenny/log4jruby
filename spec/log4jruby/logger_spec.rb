@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../spec_helper'
+require 'spec_helper'
 
 require 'log4jruby'
 
@@ -61,6 +61,10 @@ module Log4jruby
       
       it "should respond to :level" do
         subject.respond_to?(:level).should == true
+      end
+      
+      it "should respond to :flush" do
+        subject.respond_to?(:flush).should == true
       end
     end
     
@@ -205,69 +209,30 @@ module Log4jruby
       end
     end
 
-    context "with wrapped native java exception" do
-      it "should forward to log4j (msg, Throwable) signature" do
-        @log4j.should_receive(:debug).
-        with('', instance_of(java.lang.NumberFormatException))
+    specify "ruby exceptions are logged with backtrace" do
+      @log4j.should_receive(:debug).with(/some error.*#{__FILE__}/m, nil)
 
-        native_exception = nil
-        begin
-          java.lang.Long.new('not a number')
-        rescue NativeException => e
-          native_exception = e
-        end
-
-        subject.debug(native_exception)
-      end 
-    end
-
-    context "with message and wrapped native java exception" do
-      it "should forward to log4j (msg, Throwable) signature" do
-        @log4j.should_receive(:error).
-        with('my message', instance_of(java.lang.NumberFormatException))
-
-        native_exception = nil
-        begin
-          java.lang.Long.new('not a number')
-        rescue NativeException => e
-          native_exception = e
-        end
-
-        subject.log_error('my message', native_exception)
+      begin;
+        raise "some error"
+      rescue => e
+        subject.debug(e)
       end
     end
 
-    context "with unwrapped java exception" do
-      it "should forward to log4j (msg, Throwable) signature" do 
-        @log4j.should_receive(:debug).
-        with('', instance_of(java.lang.IllegalArgumentException))
+    specify "NativeExceptions are logged with backtrace and wrapped Throwable" do
+      @log4j.should_receive(:error).
+        with(/my message/, instance_of(java.lang.NumberFormatException))
 
-        subject.debug(java.lang.IllegalArgumentException.new)
+      native_exception = nil
+      begin
+        java.lang.Long.new('not a number')
+      rescue NativeException => e
+        native_exception = e
       end
+
+      subject.log_error('my message', native_exception)
     end
-
-    context "with ruby exception" do
-      it "should stringify message and backtrace" do
-        ruby_error = RuntimeError.new("my message")
-        ruby_error.stub(:backtrace).and_return(["line1", "line2"])
-
-        @log4j.should_receive(:debug).with("my message\n  line1\n  line2", nil)
-
-        subject.debug(ruby_error) 
-      end 
-    end
-
-    context "message and ruby exception" do
-      it "should concatenate stringified backtrace to message" do
-        ruby_error = RuntimeError.new('my error')
-        ruby_error.stub(:backtrace).and_return(["line1", "line2"])
-
-        @log4j.should_receive(:error).with("my message\nmy error\n  line1\n  line2", nil)
-
-        subject.log_error('my message', ruby_error)
-      end
-    end
-
+  
     describe '#debug' do
       it "should avoid parameter evaluation if given block and debug level is not enabled" do
         @log4j.should_receive(:isDebugEnabled).and_return(false)
