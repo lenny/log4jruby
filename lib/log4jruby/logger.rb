@@ -127,11 +127,11 @@ module Log4jruby
     end
     
     def debug?
-      @logger.isDebugEnabled
+      @logger.isEnabledFor(Java::org.apache.log4j.Priority::DEBUG)
     end
     
     def info?
-      @logger.isInfoEnabled
+      @logger.isEnabledFor(Java::org.apache.log4j.Priority::INFO)
     end
     
     def warn?

@@ -44,11 +44,11 @@ module Log4jruby
       end
     end
     
-    specify "there is only one logger per name(retrievable via Logger[name])" do
+    specify "there should be only one logger per name(retrievable via Logger[name])" do
       Logger["A"].should be_equal(Logger["A"])
     end
 
-    specify "backing log4j Logger should be accessible via :log4j_logger" do
+    specify "the backing log4j Logger should be accessible via :log4j_logger" do
       Logger.get('X').log4j_logger.should be_instance_of(Java::org.apache.log4j.Logger)
     end
     
@@ -90,59 +90,79 @@ module Log4jruby
       end
     end
 
-    it "should log simple string" do
-      @log4j.should_receive(:debug).with('test', nil)
-      subject.debug('test')  
+    [:debug, :info, :warn, :error, :fatal].each do |level|
+      describe "##{level}" do
+        it "should stringify non-exception argument" do
+          @log4j.should_receive(level).with('7', nil)
+          subject.send(level, 7)
+        end
+        
+        it "should log message and backtrace for ruby exceptions" do
+          @log4j.should_receive(level).with(/some error.*#{__FILE__}/m, nil)
+          begin
+            raise "some error"
+          rescue => e
+            subject.send(level, e)
+          end
+        end
+
+        it "should log ruby backtrace and wrapped Throwable for NativeExceptions" do
+          @log4j.should_receive(level).
+            with(/not a number.*#{__FILE__}/m, instance_of(java.lang.NumberFormatException))
+
+          begin
+            java.lang.Long.new('not a number')
+          rescue NativeException => e
+            subject.send(level, e)
+          end
+        end
+       
+      end
     end
 
-    it "should stringify non-exception argument" do
-      @log4j.should_receive(:debug).with('7', nil)
-      subject.debug(7)
-    end  
-
-    it "should accept block for msg in order to avoid evaluation" do
-      @log4j.should_receive(:debug).with('test', nil)
-      subject.debug { 'test' }
+    [:debug, :info, :warn].each do |level|
+      describe "##level with block argument" do
+        it "should log return value of block argument if #{level} is enabled" do
+          @log4j.should_receive(:isEnabledFor).and_return(true)
+          @log4j.should_receive(level).with("test", nil)
+          subject.send(level) { 'test' }
+        end
+        
+        it "should not evaluate block argument if #{level} is not enabled" do
+          @log4j.should_receive(:isEnabledFor).and_return(false)
+          subject.send(level) { raise 'block was called' }
+        end
+      end
     end
 
-    describe 'tracing' do
-      it "should use setting for logger if set" do
-        subject.tracing = false
-        subject.tracing?.should be_false
+    describe '#tracing?', "should be inherited" do
+      before do
+        Logger.root.tracing = nil
+        Logger.get("A::B").tracing = nil
+        Logger.get("A").tracing = nil
       end
       
-      it "should use value from first ancestor with setting if not set" do
-        loggera = Logger['A']
-        loggerb = Logger['A::B']
-        loggerc = Logger['A::B::C']
-            
-        loggera.tracing = true
-        
-        loggerc.tracing?.should be_true
-        
-        loggerb.tracing = false
-        
-        loggera.tracing?.should be_true
-        loggerb.tracing?.should be_false
-        loggerc.tracing?.should be_false  
+      it "should return false with tracing unset anywhere" do
+        Logger['A'].tracing?.should == false
       end
       
-      it "should use value from root if not set and no parent" do
-        logger = Logger['value_from_root_if_not_set_and_no_parent']
-            
-        logger.tracing?.should be_false
-        
+      it "should return true with tracing explicitly set to true" do
+        Logger.get('A', :tracing => true).tracing?.should == true
+      end
+      
+      it "should return true with tracing unset but set to true on parent" do
+        Logger.get('A', :tracing => true)
+        Logger.get('A::B').tracing?.should == true
+      end
+
+      it "should return false with tracing unset but set to false on parent" do
+        Logger.get('A', :tracing => false)
+        Logger.get('A::B').tracing?.should == false
+      end
+
+      it "should return true with tracing unset but set to true on root logger" do
         Logger.root.tracing = true
-        
-        logger.tracing?.should be_true
-      end
-    
-      it "should be false if not set at all" do
-        loggera = Logger['A']
-        loggerb = Logger['A::B']
-        loggerc = Logger['A::B::C']
-            
-        loggerc.tracing?.should be_false
+        Logger.get('A::B').tracing?.should == true
       end
     end
 
@@ -173,7 +193,7 @@ module Log4jruby
       end
 
       it "should not push caller info into MDC if logging level is not enabled" do
-        @log4j.stub(:isDebugEnabled).and_return(false)
+        @log4j.stub(:isEnabledFor).and_return(false)
 
         MDC.stub(:put).and_raise("MDC was modified")
 
@@ -206,65 +226,6 @@ module Log4jruby
         end
 
         subject.debug('test')
-      end
-    end
-
-    specify "ruby exceptions are logged with backtrace" do
-      @log4j.should_receive(:debug).with(/some error.*#{__FILE__}/m, nil)
-
-      begin;
-        raise "some error"
-      rescue => e
-        subject.debug(e)
-      end
-    end
-
-    specify "NativeExceptions are logged with backtrace and wrapped Throwable" do
-      @log4j.should_receive(:error).
-        with(/my message/, instance_of(java.lang.NumberFormatException))
-
-      native_exception = nil
-      begin
-        java.lang.Long.new('not a number')
-      rescue NativeException => e
-        native_exception = e
-      end
-
-      subject.log_error('my message', native_exception)
-    end
-  
-    describe '#debug' do
-      it "should avoid parameter evaluation if given block and debug level is not enabled" do
-        @log4j.should_receive(:isDebugEnabled).and_return(false)
-        subject.debug { raise 'block was called' }   
-      end
-    end
-
-    describe '#info' do
-      it "should avoid parameter evaluation if given block and info level is not enabled" do
-        @log4j.should_receive(:isInfoEnabled).and_return(false)
-        subject.info { raise 'block was called' }         
-      end
-    end
-
-    describe '#warn' do
-      it "should avoid parameter evaluation if given block and warn level is not enabled" do
-        @log4j.should_receive(:isEnabledFor).and_return(false)
-        subject.warn { raise 'block was called' } 
-      end
-    end
-
-    describe '#error' do
-      it "should always do parameter evaluation even when given a block" do
-        @log4j.should_receive(:error).with("message", nil)
-        subject.error { 'message' }
-      end
-    end
-
-    describe '#fatal' do
-      it "should always do parameter evaluation even when given a block" do
-        @log4j.should_receive(:fatal).with("message", nil)
-        subject.fatal { 'message' }
       end
     end
 
