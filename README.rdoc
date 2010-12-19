@@ -6,8 +6,9 @@
 
 Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/log4j/1.2/apidocs/index.html]. It is geared more toward those who are using JRuby to integrate with and build on top of Java code that uses Log4j. The <tt>Log4jruby::Logger</tt> provides an interface much like the standard ruby {Logger}[http://ruby-doc.org/core/classes/Logger.html]. Logging is configured via traditional Log4j methods.
 
-* Filename, line number, and method name are made available(if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
-* Ruby and Java Exceptions(i.e NativeException) are logged with stack traces.
+* Filename, line number, and method name are available(if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
+* Exceptions can be logged directly and are output with backtraces. Java Exceptions(i.e. NativeExceptions)
+  are logged with full java backtrace(including nested exceptions).
 * Logging config for your ruby code can be added to your existing configuration. Ruby logger names are mapped to dot separated names prefixed with <tt>.jruby</tt>
 
     log4j.appender.Ruby=org.apache.log4j.ConsoleAppender
@@ -19,67 +20,25 @@ Log4jruby is a thin wrapper around the {Log4j Logger}[http://logging.apache.org/
 
 === Examples
 
-	require 'log4jruby'
+    def foo
+      logger.debug("hello from foo")
+      begin
+        bar
+      rescue => e
+        logger.error(e)
+      end
+    end
 
-	logger = Log4jruby::Logger.get('test', :tracing => true, :level => :debug)
+    DEBUG jruby.MyClass foo:15 - hello from foo
+    DEBUG jruby.MyClass bar:24 - hello from bar
+    DEBUG jruby.MyClass baz:29 - hello from baz
+    ERROR jruby.MyClass foo:19 - error from baz
+      examples/simple.rb:30:in `baz'
+      examples/simple.rb:25:in `bar'
+      examples/simple.rb:17:in `foo'
+      examples/simple.rb:35
 
-	logger.debug("hello world")
 
-	class MyClass
-	  def initialize
-	    @logger = Log4jruby::Logger.get(self.class.name, :level => :debug, :tracing => true)
-	  end
-  
-	  def foo
-	    @logger.debug("hello from foo")
-	    raise "foo error"
-	  end
-
-	  def bar
-	    @logger.debug("hello from bar")
-	    foo
-	  end
-
-	  def baz
-	    @logger.debug("hello from baz")
-	    begin
-	      bar
-	    rescue => e
-	      @logger.error(e)
-	    end
-	  end
-	end
-
-	o = MyClass.new
-	o.baz
-
-	logger.debug("changing log level for MyClass to ERROR")
-
- 	myclass_logger = Log4jruby::Logger['MyClass']
- 	myclass_logger.level = :error
-
-	logger.debug("calling baz again")
-	o.baz
-	
-	Outputs:
-	
-	DEBUG examples/simple.rb :7 - hello world
-	DEBUG examples/simple.rb baz:25 - hello from baz
-	DEBUG examples/simple.rb bar:20 - hello from bar
-	DEBUG examples/simple.rb foo:15 - hello from foo
-	ERROR examples/simple.rb baz:29 - foo error
-	  examples/simple.rb:16:in `foo'
-	  examples/simple.rb:21:in `bar'
-	  examples/simple.rb:27:in `baz'
-	  examples/simple.rb:35
-	DEBUG examples/simple.rb :37 - changing log level for MyClass to ERROR
-	DEBUG examples/simple.rb :42 - calling baz again
-	ERROR examples/simple.rb baz:29 - foo error
-	  examples/simple.rb:16:in `foo'
-	  examples/simple.rb:21:in `bar'
-	  examples/simple.rb:27:in `baz'
-	  examples/simple.rb:43
-	
 Mix It In
 
 	class MyClass

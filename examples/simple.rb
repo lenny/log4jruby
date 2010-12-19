@@ -13,32 +13,31 @@ class MyClass
   
   def foo
     @logger.debug("hello from foo")
-    raise "foo error"
-  end
-
-  def bar
-    @logger.debug("hello from bar")
-    foo
-  end
-
-  def baz
-    @logger.debug("hello from baz")
     begin
       bar
     rescue => e
       @logger.error(e)
     end
   end
+
+  def bar
+    @logger.debug("hello from bar")
+    baz
+  end
+
+  def baz
+    @logger.debug("hello from baz")
+    raise "error from baz"
+  end
 end
 
 o = MyClass.new
-o.baz
+o.foo
 
 logger.debug("changing log level for MyClass to ERROR")
 
-myclass_logger = Log4jruby::Logger['MyClass']
-myclass_logger.level = :error
+Log4jruby::Logger.get('MyClass', :level => :error)
 
-logger.debug("calling baz again")
-o.baz
+logger.debug("calling foo again")
+o.foo
 
