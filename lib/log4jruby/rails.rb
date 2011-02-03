@@ -12,7 +12,7 @@ module Log4jruby
   # ex.
   #   require 'log4jruby/rails'
   #   Log4jruby::Rails.configure do |c|
-  #     c.app_name = 'MyApp'
+  #     c.logger_name = 'MyApp'
   #   end
   # 
   # @attr [String] logger_name     Default is 'Rails'
