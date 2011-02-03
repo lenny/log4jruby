@@ -75,5 +75,15 @@ The primary use case(i.e. mine) for this library is that you are already up and 
 
 === Rails
 
-config.logger = Log4jruby::Logger.get('MyApp')
+First try to add the following to one of your config/environment* files.
 
+   require 'log4jruby'
+   config.logger = Log4jruby::Logger.get('MyApp')
+
+Depending on your runtime environment and how it differs between development and production that may not work for you
+due to CLASSPATH issues. Alternatively you may add the following to one of your config/initializers/* files.
+
+   require 'log4jruby/rails'
+   Log4jruby::Rails.configure do |c|
+      c.logger_name = 'MyApp'
+   end
