@@ -61,13 +61,11 @@ Mix It In
 See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/examples/]. They should be runnable from the source.
 
 == Installation
-
-    No published gem yet. For now build gem locally or use Bundler.
-
+  > gem install log4jruby
+  
+  or
+  
 	> git clone git://github.com/lenny/log4jruby.git
-	> cd log4jruby
-	> gem build log4jruby.gemspec
-	> gem install log4jruby-0.1.0.gem
 	
 == Usage
 
