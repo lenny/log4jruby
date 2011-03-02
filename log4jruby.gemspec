@@ -4,7 +4,7 @@ $:.unshift lib unless $:.include?(lib)
 
 Gem::Specification.new do |s|
   s.name = "log4jruby"
-  s.version = '0.1.dev'
+  s.version = '0.4.0'
 
   s.authors = ["Lenny Marks"]
   s.email = ["lenny@aps.org"]
