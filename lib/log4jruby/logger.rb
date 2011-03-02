@@ -10,7 +10,6 @@ module Log4jruby
   # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber}) 
   class Logger
     BLANK_CALLER = ['', '', ''] #:nodoc:
-    MDC = Java::org.apache.log4j.MDC 
     
     # turn tracing on to make fileName, lineNumber, and methodName available to 
     # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
@@ -171,16 +170,16 @@ module Log4jruby
     def with_context # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
 
-      MDC.put("fileName", file_line_method[0])
-      MDC.put("lineNumber", file_line_method[1])
-      MDC.put("methodName", file_line_method[2].to_s)
+      mdc.put("fileName", file_line_method[0])
+      mdc.put("lineNumber", file_line_method[1])
+      mdc.put("methodName", file_line_method[2].to_s)
 
       begin
         yield
       ensure
-        MDC.remove("fileName")
-        MDC.remove("lineNumber")
-        MDC.remove("methodName")
+        mdc.remove("fileName")
+        mdc.remove("lineNumber")
+        mdc.remove("methodName")
       end
     end
 
@@ -194,6 +193,10 @@ module Log4jruby
     def parse_caller(at) # :nodoc:
       at.match(/^(.+?):(\d+)(?::in `(.*)')?/).captures
     end
-
+    
+    def mdc
+      Java::org.apache.log4j.MDC 
+    end
+    
   end
 end
