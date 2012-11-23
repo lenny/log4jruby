@@ -8,6 +8,8 @@ module Log4jruby
 
     subject { Logger.get('Test', :level => :debug) }
 
+    let(:log4j) { subject.log4j_logger} 
+    
     before do
       @log4j = subject.log4j_logger
     end
@@ -93,12 +95,12 @@ module Log4jruby
     [:debug, :info, :warn, :error, :fatal].each do |level|
       describe "##{level}" do
         it "should stringify non-exception argument" do
-          @log4j.should_receive(level).with('7', nil)
+          log4j.should_receive(level).with('7', nil)
           subject.send(level, 7)
         end
         
         it "should log message and backtrace for ruby exceptions" do
-          @log4j.should_receive(level).with(/some error.*#{__FILE__}/m, nil)
+          log4j.should_receive(level).with(/some error.*#{__FILE__}/m, nil)
           begin
             raise "some error"
           rescue => e
@@ -107,7 +109,7 @@ module Log4jruby
         end
 
         it "should log ruby backtrace and wrapped Throwable for NativeExceptions" do
-          @log4j.should_receive(level).
+          log4j.should_receive(level).
             with(/not a number.*#{__FILE__}/m, instance_of(java.lang.NumberFormatException))
 
           begin
@@ -123,13 +125,13 @@ module Log4jruby
     [:debug, :info, :warn].each do |level|
       describe "##level with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
-          @log4j.should_receive(:isEnabledFor).and_return(true)
-          @log4j.should_receive(level).with("test", nil)
+          log4j.should_receive(:isEnabledFor).and_return(true)
+          log4j.should_receive(level).with("test", nil)
           subject.send(level) { 'test' }
         end
         
         it "should not evaluate block argument if #{level} is not enabled" do
-          @log4j.should_receive(:isEnabledFor).and_return(false)
+          log4j.should_receive(:isEnabledFor).and_return(false)
           subject.send(level) { raise 'block was called' }
         end
       end
@@ -173,7 +175,7 @@ module Log4jruby
 
       it "should set MDC lineNumber for duration of invocation" do
         line = __LINE__ + 5
-        @log4j.should_receive(:debug) do
+        log4j.should_receive(:debug) do
           MDC.get('lineNumber').should == "#{line}"
         end
 
@@ -183,7 +185,7 @@ module Log4jruby
       end
 
       it "should set MDC fileName for duration of invocation" do
-        @log4j.should_receive(:debug) do
+        log4j.should_receive(:debug) do
           MDC.get('fileName').should == __FILE__
         end
 
@@ -193,7 +195,7 @@ module Log4jruby
       end
 
       it "should not push caller info into MDC if logging level is not enabled" do
-        @log4j.stub(:isEnabledFor).and_return(false)
+        log4j.stub(:isEnabledFor).and_return(false)
 
         MDC.stub(:put).and_raise("MDC was modified")
 
@@ -205,7 +207,7 @@ module Log4jruby
           subject.debug('test')
         end
 
-        @log4j.should_receive(:debug) do
+        log4j.should_receive(:debug) do
           MDC.get('methodName').should == 'some_method'
         end
 
@@ -219,7 +221,7 @@ module Log4jruby
       before { subject.tracing = false }
       
       it "should set MDC with blank values" do
-        @log4j.should_receive(:debug) do
+        log4j.should_receive(:debug) do
           MDC.get('fileName').should == ''
           MDC.get('methodName').should == ''
           MDC.get('lineNumber').should == ''
@@ -231,7 +233,7 @@ module Log4jruby
 
     describe '#log_error(msg, error)' do
       it "should forward to log4j error(msg, Throwable) signature" do
-        @log4j.should_receive(:error).
+        log4j.should_receive(:error).
         with('my message', instance_of(java.lang.IllegalArgumentException))
 
         subject.log_error('my message', java.lang.IllegalArgumentException.new)
@@ -240,7 +242,7 @@ module Log4jruby
 
     describe '#log_fatal(msg, error)' do
       it "should forward to log4j fatal(msg, Throwable) signature" do
-        @log4j.should_receive(:fatal).
+        log4j.should_receive(:fatal).
         with('my message', instance_of(java.lang.IllegalArgumentException))
 
         subject.log_fatal('my message', java.lang.IllegalArgumentException.new)
