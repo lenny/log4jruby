@@ -9,11 +9,7 @@ module Log4jruby
     subject { Logger.get('Test', :level => :debug) }
 
     let(:log4j) { subject.log4j_logger} 
-    
-    before do
-      @log4j = subject.log4j_logger
-    end
-
+  
     describe "mapping to Log4j Logger names" do
       it "should prepend 'jruby.' to specified name" do
         Logger.get('MyLogger').log4j_logger.name.should == 'jruby.MyLogger'
@@ -123,7 +119,7 @@ module Log4jruby
     end
 
     [:debug, :info, :warn].each do |level|
-      describe "##level with block argument" do
+      describe "##{level} with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
           log4j.should_receive(:isEnabledFor).and_return(true)
           log4j.should_receive(level).with("test", nil)
