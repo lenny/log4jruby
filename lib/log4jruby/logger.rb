@@ -34,7 +34,7 @@ module Log4jruby
         log4jruby
       end
       
-      # same as [] but acceptions attributes
+      # same as [] but accepts attributes
       def get(name, values = {})
         logger = self[name]
         logger.attributes = values
