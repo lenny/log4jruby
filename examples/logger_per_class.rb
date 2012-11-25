@@ -1,14 +1,13 @@
 require File.dirname(__FILE__) + '/setup'
 
 require 'log4jruby'
-require 'log4jruby/logger_for_class'
 
 logger = Log4jruby::Logger.root
 logger.level = :debug
 
 module MyModule
   class A
-    include Log4jruby::LoggerForClass
+    enable_logger
   
     class << self
       def my_class_method

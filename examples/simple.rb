@@ -7,26 +7,26 @@ logger = Log4jruby::Logger.get('test', :tracing => true, :level => :debug)
 logger.debug("hello world")
 
 class MyClass
+  attr_reader :logger
+  
   def initialize
     @logger = Log4jruby::Logger.get(self.class.name, :level => :debug, :tracing => true)
   end
-  
+
   def foo
-    @logger.debug("hello from foo")
-    begin
-      bar
-    rescue => e
-      @logger.error(e)
-    end
+    logger.debug("hello from foo")
+    bar
+  rescue => e
+    logger.error(e)
   end
 
   def bar
-    @logger.debug("hello from bar")
+    logger.debug("hello from bar")
     baz
   end
 
   def baz
-    @logger.debug("hello from baz")
+    logger.debug("hello from baz")
     raise "error from baz"
   end
 end
