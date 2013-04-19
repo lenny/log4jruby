@@ -30,10 +30,6 @@ module Log4jruby
         logger.log4j_logger.level.should == Java::org.apache.log4j.Level::FATAL
         logger.tracing.should == true
       end
-
-      specify ':log_level should default to :info' do
-        Logger.get("logger#{object_id}").log4j_logger.level.should == Java::org.apache.log4j.Level::INFO
-      end
     end
 
     describe "root logger" do
@@ -93,6 +89,11 @@ module Log4jruby
       it 'returns ::Logger constant values' do
         subject.level = ::Logger::DEBUG
         subject.level.should == ::Logger::DEBUG
+      end
+
+      it 'inherits parent level when not explicitly set' do
+        Logger.get('Foo', :level => :fatal)
+        Logger.get('Foo::Bar').level.should == ::Logger::FATAL
       end
     end
 

@@ -91,7 +91,7 @@ module Log4jruby
     end
     
     def level
-      LOG4J_LEVELS[@logger.level]
+      LOG4J_LEVELS[@logger.effectiveLevel]
     end
     
     def flush
@@ -174,7 +174,6 @@ module Log4jruby
     def initialize(logger) # :nodoc:
       @logger = logger
       Logger.logger_mapping[@logger] = self
-      self.level = :info
     end
     
     def with_context # :nodoc:
