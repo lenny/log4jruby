@@ -3,14 +3,20 @@ require 'spec_helper'
 require 'log4jruby'
 
 describe '.enable_logger injects a logger', :log_capture => true do
-  specify 'lo4j logger is named for class' do
-    Log4JLoggerIsNamedForClass = Class.new do
-      enable_logger
-      def initialize
-        logger.debug(logger.log4j_logger.name)
-      end
+  class LogEnabledClass
+    enable_logger
+
+    def echo(s)
+      logger.debug(s)
     end
-    Log4JLoggerIsNamedForClass.new
-    log_capture.should include('Log4JLoggerIsNamedForClass')
+  end
+
+  specify 'lo4j logger is named for class' do
+    LogEnabledClass.logger.log4j_logger.name.should include('LogEnabledClass')
+  end
+
+  specify 'logger is available to instance' do
+    LogEnabledClass.new.echo('foo')
+    log_capture.should include('foo')
   end
 end
