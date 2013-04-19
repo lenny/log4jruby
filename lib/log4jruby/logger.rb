@@ -1,5 +1,7 @@
 require 'log4jruby/log4j_args'
 
+require 'logger'
+
 module Log4jruby
   
   # Author::    Lenny Marks
@@ -10,7 +12,15 @@ module Log4jruby
   # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber}) 
   class Logger
     BLANK_CALLER = ['', '', ''] #:nodoc:
-    
+
+    LOG4J_LEVELS = {
+        Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
+        Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
+        Java::org.apache.log4j.Level::WARN => ::Logger::WARN,
+        Java::org.apache.log4j.Level::ERROR => ::Logger::ERROR,
+        Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL,
+    }
+
     # turn tracing on to make fileName, lineNumber, and methodName available to 
     # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
     attr_accessor :tracing
@@ -62,24 +72,26 @@ module Log4jruby
       end
     end
     
-    # Shortcut for setting log levels. (:debug, :info, :warn, :error)
+    # Shortcut for setting log levels. (:debug, :info, :warn, :error, :fatal)
     def level=(level)
       @logger.level = case level
-      when :debug
-        then Java::org.apache.log4j.Level::DEBUG
-      when :info
-        then Java::org.apache.log4j.Level::INFO
-      when :warn
-        then Java::org.apache.log4j.Level::WARN
-      when :error
-        then Java::org.apache.log4j.Level::ERROR
+      when :debug, ::Logger::DEBUG
+        Java::org.apache.log4j.Level::DEBUG
+      when :info, ::Logger::INFO
+        Java::org.apache.log4j.Level::INFO
+      when :warn, ::Logger::WARN
+        Java::org.apache.log4j.Level::WARN
+      when :error, ::Logger::ERROR
+        Java::org.apache.log4j.Level::ERROR
+      when :fatal, ::Logger::FATAL
+        Java::org.apache.log4j.Level::FATAL
       else
         raise NotImplementedError
       end
     end
     
     def level
-      @logger.level
+      LOG4J_LEVELS[@logger.level]
     end
     
     def flush
@@ -159,12 +171,10 @@ module Log4jruby
       Logger.logger_mapping
     end
 
-    def initialize(logger, values = {}) # :nodoc:
-      @logger = logger  
-     
+    def initialize(logger) # :nodoc:
+      @logger = logger
       Logger.logger_mapping[@logger] = self
-      
-      self.attributes = values
+      self.level = :info
     end
     
     def with_context # :nodoc:

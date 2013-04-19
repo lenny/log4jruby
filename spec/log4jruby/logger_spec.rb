@@ -26,9 +26,13 @@ module Log4jruby
       end
       
       it "should accept attributes hash" do
-        logger = Logger.get('test', :level => :debug, :tracing => true)
-        logger.log4j_logger.level.should == Java::org.apache.log4j.Level::DEBUG
+        logger = Logger.get("loggex#{object_id}", :level => :fatal, :tracing => true)
+        logger.log4j_logger.level.should == Java::org.apache.log4j.Level::FATAL
         logger.tracing.should == true
+      end
+
+      specify ':log_level should default to :info' do
+        Logger.get("logger#{object_id}").log4j_logger.level.should == Java::org.apache.log4j.Level::INFO
       end
     end
 
@@ -67,24 +71,28 @@ module Log4jruby
     end
     
     describe "#level =" do
-      it "should accept :debug" do
-        subject.level = :debug
-        subject.level.should == Java::org.apache.log4j.Level::DEBUG
+      describe 'accepts symbols or ::Logger constants' do
+        [:debug, :info, :warn, :error, :fatal].each do |l|
+          example ":#{l}" do
+            subject.level = l
+            subject.level.should == ::Logger.const_get(l.to_s.upcase)
+          end
+        end
+
+        ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'].each do |l|
+          example "::Logger::#{l}"  do
+            level_constant = ::Logger.const_get(l.to_sym)
+            subject.level = level_constant
+            subject.level.should == level_constant
+          end
+        end
       end
-      
-      it "should accept :info" do
-        subject.level = :info
-        subject.level.should == Java::org.apache.log4j.Level::INFO
-      end
-      
-      it "should accept :warn" do
-        subject.level = :warn
-        subject.level.should == Java::org.apache.log4j.Level::WARN
-      end
-      
-      it "should accept :error" do
-        subject.level = :error
-        subject.level.should == Java::org.apache.log4j.Level::ERROR
+    end
+
+    describe '#level' do
+      it 'returns ::Logger constant values' do
+        subject.level = ::Logger::DEBUG
+        subject.level.should == ::Logger::DEBUG
       end
     end
 
