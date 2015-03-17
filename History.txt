@@ -1,3 +1,6 @@
+
+* Made logger class (JRuby Wrapper) thread safe
+
 1.0.0.rc1
 
 * setting level now accepts ::Logger constants and symbols
