@@ -27,7 +27,7 @@ module Log4jruby
 
     class << self
       def logger_mapping
-        @logger_mapping ||= {}
+        @logger_mapping ||= ReadWriteHash.new
       end
       
       # get Logger for name
