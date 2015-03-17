@@ -1,3 +1,4 @@
+require 'log4jruby/read_write_hash'
 require 'log4jruby/logger'
 require 'log4jruby/logger_for_class'
 
