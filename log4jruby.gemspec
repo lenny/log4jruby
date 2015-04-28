@@ -24,4 +24,5 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
   gem.platform = 'java'
+  gem.license = 'MIT'
 end
