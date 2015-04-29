@@ -26,22 +26,12 @@ module Log4jruby
     attr_accessor :tracing
 
     class << self
-      def logger_mapping
-        @logger_mapping ||= ReadWriteHash.new
-      end
-      
       # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
        
         log4j = Java::org.apache.log4j.Logger.getLogger(name)
-        log4jruby = logger_mapping[log4j]
-        
-        unless log4jruby
-          log4jruby = new(log4j)
-        end
-        
-        log4jruby
+        fetch_logger(log4j, new(log4j))
       end
       
       # same as [] but accepts attributes
@@ -54,13 +44,18 @@ module Log4jruby
       # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
-        
-        log4jruby = logger_mapping[log4j]
-        unless log4jruby
-          log4jruby = new(log4j)
-        end
-        log4jruby
-      end   
+        fetch_logger(log4j, new(log4j))
+      end
+
+      private
+
+      def fetch_logger(log4j_logger, default)
+        logger_mapping.putIfAbsent(log4j_logger.getName, default)
+      end
+
+      def logger_mapping
+        @logger_mapping ||= Java::java.util.concurrent.ConcurrentHashMap.new
+      end
     end
     
     def attributes=(values)
@@ -162,18 +157,18 @@ module Log4jruby
     end
     
     def parent
-      logger_mapping[log4j_logger.parent] || Logger.root
+      fetch_logger(log4j_logger.parent, Logger.root)
     end
     
     private
-    
-    def logger_mapping
-      Logger.logger_mapping
-    end
 
     def initialize(logger) # :nodoc:
       @logger = logger
-      Logger.logger_mapping[@logger] = self
+      fetch_logger(@logger, self)
+    end
+
+    def fetch_logger(log4j_logger, default)
+      self.class.send(:fetch_logger, log4j_logger, default)
     end
     
     def with_context # :nodoc:
