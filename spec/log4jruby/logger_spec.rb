@@ -30,6 +30,24 @@ module Log4jruby
         logger.log4j_logger.level.should == Java::org.apache.log4j.Level::FATAL
         logger.tracing.should == true
       end
+
+      it 'is thread-safe' do
+        loggers = Java::java.util.concurrent.ConcurrentHashMap.new
+        threads = []
+        10.times do |thread_index|
+          threads << Thread.new do
+            1000.times do |i|
+              loggers.put("#{thread_index}_#{i}", Logger.get(i.to_s))
+            end
+          end
+        end
+        threads.each(&:join)
+        10.times do |thread_index|
+          1000.times do |i|
+            expect(loggers.get("#{thread_index}_#{i}")).to equal(Logger.get(i.to_s))
+          end
+        end
+      end
     end
 
     describe 'root logger' do
@@ -270,5 +288,4 @@ module Log4jruby
       end
     end
   end
-
 end
