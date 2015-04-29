@@ -148,16 +148,16 @@ module Log4jruby
     def warn?
       @logger.isEnabledFor(Java::org.apache.log4j.Priority::WARN)
     end
-    
+
     def tracing?
       if tracing.nil?
         if parent == Logger.root
-          Logger.root.tracing
-        else 
-         parent.tracing?
+          Logger.root.tracing == true
+        else
+          parent.tracing?
         end
       else
-        tracing
+        tracing == true
       end
     end
     
