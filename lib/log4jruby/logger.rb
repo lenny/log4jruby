@@ -195,6 +195,10 @@ module Log4jruby
     def mdc
       Java::org.apache.log4j.MDC 
     end
+
+    def fetch_logger(log4j_logger, default)
+      self.class.send(:fetch_logger, log4j_logger, default)
+    end
   end
 end
 
