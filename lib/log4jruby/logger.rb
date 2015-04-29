@@ -29,7 +29,6 @@ module Log4jruby
       # get Logger for name
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
-       
         log4j = Java::org.apache.log4j.Logger.getLogger(name)
         fetch_logger(log4j, new(log4j))
       end
@@ -50,11 +49,11 @@ module Log4jruby
       private
 
       def fetch_logger(log4j_logger, default)
-        logger_mapping.putIfAbsent(log4j_logger.getName, default)
+        @logger_mapping.putIfAbsent(log4j_logger.getName, default) || @logger_mapping.get(log4j_logger.getName)
       end
 
-      def logger_mapping
-        @logger_mapping ||= Java::java.util.concurrent.ConcurrentHashMap.new
+      def init_store
+        @logger_mapping = Java::java.util.concurrent.ConcurrentHashMap.new
       end
     end
     
@@ -164,13 +163,8 @@ module Log4jruby
 
     def initialize(logger) # :nodoc:
       @logger = logger
-      fetch_logger(@logger, self)
     end
 
-    def fetch_logger(log4j_logger, default)
-      self.class.send(:fetch_logger, log4j_logger, default)
-    end
-    
     def with_context # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
 
@@ -203,3 +197,5 @@ module Log4jruby
     end
   end
 end
+
+Log4jruby::Logger.send(:init_store) #Avoid lazy-initialization thread-safety issues on logger_mapping
