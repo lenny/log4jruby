@@ -75,7 +75,7 @@ module Log4jruby
           end
         end
 
-        ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'].each do |l|
+        %w(DEBUG INFO WARN ERROR FATAL).each do |l|
           example "::Logger::#{l}"  do
             level_constant = ::Logger.const_get(l.to_sym)
             subject.level = level_constant
@@ -216,7 +216,7 @@ module Log4jruby
           MDC.get('methodName').should == 'some_method'
         end
 
-        some_method()
+        some_method
 
         MDC.get('methodName').should be_nil
       end

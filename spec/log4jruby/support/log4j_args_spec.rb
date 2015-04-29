@@ -20,7 +20,7 @@ module Log4jruby
       context 'with only a ruby exception' do
         it 'should return [<stringified exception message > + <backtrace>, nil]' do
           ruby_error = RuntimeError.new('my message')
-          ruby_error.stub(:backtrace).and_return(['line1', 'line2'])
+          ruby_error.stub(:backtrace).and_return(%w(line1 line2))
 
           Log4jArgs.convert(ruby_error).should == ["my message\n  line1\n  line2", nil]
         end
@@ -29,7 +29,7 @@ module Log4jruby
       context 'with a message and ruby exception' do
         it 'should return [<msg> + <stringified exception message > + <backtrace>, nil]' do
           ruby_error = RuntimeError.new('my error')
-          ruby_error.stub(:backtrace).and_return(['line1', 'line2'])
+          ruby_error.stub(:backtrace).and_return(%w(line1 line2))
 
           Log4jArgs.convert('my message', ruby_error).should == ["my message\nmy error\n  line1\n  line2", nil]
         end

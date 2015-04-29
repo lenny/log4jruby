@@ -152,12 +152,12 @@ module Log4jruby
     def tracing?
       if tracing.nil?
         if parent == Logger.root
-          Logger.root.tracing == true
+          Logger.root.tracing
         else 
          parent.tracing?
         end
       else
-        tracing == true
+        tracing
       end
     end
     
