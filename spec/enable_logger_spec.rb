@@ -12,11 +12,11 @@ describe '.enable_logger injects a logger', :log_capture => true do
   end
 
   specify 'lo4j logger is named for class' do
-    LogEnabledClass.logger.log4j_logger.name.should include('LogEnabledClass')
+    expect(LogEnabledClass.logger.log4j_logger.name).to include('LogEnabledClass')
   end
 
   specify 'logger is available to instance' do
     LogEnabledClass.new.echo('foo')
-    log_capture.should include('foo')
+    expect(log_capture).to include('foo')
   end
 end
