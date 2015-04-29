@@ -179,16 +179,16 @@ module Log4jruby
     def with_context # :nodoc:
       file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
 
-      mdc.put("fileName", file_line_method[0])
-      mdc.put("lineNumber", file_line_method[1])
-      mdc.put("methodName", file_line_method[2].to_s)
+      mdc.put('fileName', file_line_method[0])
+      mdc.put('lineNumber', file_line_method[1])
+      mdc.put('methodName', file_line_method[2].to_s)
 
       begin
         yield
       ensure
-        mdc.remove("fileName")
-        mdc.remove("lineNumber")
-        mdc.remove("methodName")
+        mdc.remove('fileName')
+        mdc.remove('lineNumber')
+        mdc.remove('methodName')
       end
     end
 
