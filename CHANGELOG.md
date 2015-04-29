@@ -5,11 +5,13 @@
 * ```Log4jruby::Rails``` has been removed - Rails apps seem better off configuring
   logging using standard/vanilla means to more easily facilitate usage of TaggedLogging, etc..
   ```
+  
    e.g.
    config.logger = ActiveSupport::TaggedLogging.new(Log4jruby::Logger.get('appname'))
   ```
 * Internal support classes moved to Log4jruby::Support
 * specs updated to Rspec 3 syntax
+* Deadlock/thread-safety issues https://github.com/lenny/log4jruby/issues/2
 
 ## v1.0.0.rc1
 
