@@ -5,5 +5,5 @@ gemspec
 
 group :test, :development do
   gem 'rake', '~> 10.0.1', :require => false
-  gem 'rspec', '~> 2.99'
+  gem 'rspec', '~> 3.2.0'
 end
