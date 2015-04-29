@@ -1,6 +1,0 @@
-1.0.0.rc1
-
-* setting level now accepts ::Logger constants and symbols
-* Logger#level now returns ::Logger constant values instead of Log4j log level classes.
-  Note, you can still get at log4j constants via #log4_logger.level
-* Logger#level now returns effective log level (i.e. parent logger's level when not explicitly set)
