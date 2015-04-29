@@ -2,7 +2,9 @@ require 'log4jruby/logger'
 require 'log4jruby/logger_for_class'
 
 module Log4jruby
+  module Support
 
+  end
 end
 
 Object.class_eval do

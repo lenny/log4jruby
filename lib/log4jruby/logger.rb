@@ -1,4 +1,4 @@
-require 'log4jruby/log4j_args'
+require 'log4jruby/support/log4j_args'
 
 require 'logger'
 
@@ -193,7 +193,7 @@ module Log4jruby
     end
 
     def send_to_log4j(level, object, error, &block)
-      msg, throwable = Log4jArgs.convert(object, error, &block)
+      msg, throwable = Support::Log4jArgs.convert(object, error, &block)
       with_context do
         @logger.send(level, msg, throwable)
       end
@@ -206,6 +206,5 @@ module Log4jruby
     def mdc
       Java::org.apache.log4j.MDC 
     end
-    
   end
 end
