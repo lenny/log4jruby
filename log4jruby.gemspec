@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
 
   gem.homepage      = 'https://github.com/lenny/log4jruby'
 
-  gem.files         = Dir.glob('{lib, spec}/**/*') + %w(README.rdoc History.txt)
+  gem.files         = Dir.glob('{lib, spec}/**/*') + %w(README.rdoc CHANGELOG.md)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ['lib']
