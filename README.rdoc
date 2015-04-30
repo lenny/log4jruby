@@ -1,3 +1,5 @@
+
+
 = Log4jruby
 
 * https://github.com/lenny/log4jruby
@@ -11,7 +13,7 @@ Logging is configured via traditional Log4j methods.
 
 The primary use case(i.e. mine) for this library is that you are already up and running with Log4j and now you want
 to use it for your Ruby code too. There is not much help here for configuration. In our environment, we deploy Rails
-apps that call and extend Java code into Tomcat as WARs and use a log4j.properties to configure. For the most part, 
+apps that call and extend Java code into Tomcat as WARs and use a log4j.properties to configure. For the most part,
 all there is to using log4jruby is making sure the log4j jar is <tt>required</tt> and that Log4j is at least minimally
 configured(e.g. log4j.properties in the CLASSPATH). The examples should give you the idea.
 
@@ -57,35 +59,29 @@ gem install log4jruby
 
     class MyClass
       enable_logger
-                        
+
       class << self
         def my_class_method
           logger.info("hello from class method")
         end
       end
-        
+
       def my_method
         logger.info("hello from instance method")
       end
     end
-    	
+
     INFO jruby.MyModule.A my_class_method:14 - hello from class method
     INFO jruby.MyModule.A my_method:19 - hello from instance method
-      
+
 See more in {log4jruby/examples}[http://github.com/lenny/log4jruby/tree/master/examples/].
 They should be runnable from the source.
 
 === Rails
 
-First try to add the following to one of your config/environment* files.
+Add the following to one of your config/environment* files.
 
    require 'log4jruby'
    config.logger = Log4jruby::Logger.get('MyApp')
 
-Depending on your runtime environment and how it differs between development and production that may not work for you
-due to CLASSPATH issues. Alternatively you may add the following to one of your config/initializers/* files.
-
-   require 'log4jruby/rails'
-   Log4jruby::Rails.configure do |c|
-      c.logger_name = 'MyApp'
-   end
+You must ensure the log4j jar is required before requiring log4jruby.
