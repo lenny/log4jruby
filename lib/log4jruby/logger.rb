@@ -11,8 +11,6 @@ module Log4jruby
   # * Ruby and Java exceptions are logged with backtraces.
   # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber})
   class Logger
-    BLANK_CALLER = ['', '', ''] #:nodoc:
-
     LOG4J_LEVELS = {
         Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
         Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
@@ -151,18 +149,24 @@ module Log4jruby
     end
 
     def tracing?
-      if tracing.nil? && self != Logger.root
-        parent.tracing?
-      else
-        tracing == true
+      return @cached_tracing if defined?(@cached_tracing)
+      @cached_tracing = begin
+        if tracing.nil? && self != Logger.root
+          parent.tracing?
+        else
+          tracing == true
+        end
       end
     end
 
     def effective_formatter
-      if @formatter.nil? && self != Logger.root
-        parent.formatter
-      else
-        @formatter
+      return @formatter if defined?(@formatter)
+      @formatter = begin
+        if @formatter.nil? && self != Logger.root
+          parent.formatter
+        else
+          @formatter
+        end
       end
     end
 
@@ -177,7 +181,7 @@ module Log4jruby
     end
 
     def with_context # :nodoc:
-      file_line_method = tracing? ? parse_caller(caller(3).first) : BLANK_CALLER
+      file_line_method = parse_caller(caller(3).first)
 
       mdc.put('fileName', file_line_method[0])
       mdc.put('lineNumber', file_line_method[1])
@@ -197,7 +201,11 @@ module Log4jruby
       if (f = effective_formatter)
         msg = f.call(level, Time.now, @logger.getName, msg)
       end
-      with_context do
+      if tracing?
+        with_context do
+          @logger.send(level, msg, throwable)
+        end
+      else
         @logger.send(level, msg, throwable)
       end
     end

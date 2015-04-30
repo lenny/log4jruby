@@ -242,20 +242,6 @@ module Log4jruby
       end
     end
 
-    context 'with tracing off' do
-      before { subject.tracing = false }
-
-      it 'should set MDC with blank values' do
-        expect(log4j).to receive(:debug) do
-          expect(MDC.get('fileName')).to eq('')
-          expect(MDC.get('methodName')).to eq('')
-          expect(MDC.get('lineNumber')).to eq('')
-        end
-
-        subject.debug('test')
-      end
-    end
-
     describe '#log_error(msg, error)' do
       it 'should forward to log4j error(msg, Throwable) signature' do
         expect(log4j).to receive(:error).
