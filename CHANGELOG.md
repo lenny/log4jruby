@@ -15,6 +15,8 @@
 * Support for formatters (Rails 4 compatibility - https://github.com/lenny/log4jruby/issues/1)
 * Performance optimizations (https://github.com/lenny/log4jruby/commit/e9a2a2ac347de38431e243b062602c5055163f2c)
 
+## v1.0.0 - Same as v1.0.0.rc1
+
 ## v1.0.0.rc1
 
 * setting level now accepts ::Logger constants and symbols
