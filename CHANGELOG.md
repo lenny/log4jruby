@@ -1,5 +1,9 @@
 # log4jruby Changelog
 
+## v2.0.0.rc2
+
+* Internal implementation changes - https://github.com/lenny/log4jruby/pull/8
+
 ## v2.0.0.rc1
 
 * ```Log4jruby::Rails``` has been removed - Rails apps seem better off configuring
