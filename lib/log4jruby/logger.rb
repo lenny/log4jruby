@@ -31,7 +31,7 @@ module Log4jruby
       def[](name)
         name = name.nil? ? 'jruby' : "jruby.#{name.gsub('::', '.')}"
         log4j = Java::org.apache.log4j.Logger.getLogger(name)
-        fetch_logger(log4j, new(log4j))
+        fetch_logger(log4j)
       end
 
       # same as [] but accepts attributes
@@ -44,21 +44,19 @@ module Log4jruby
       # Return root Logger(i.e. jruby)
       def root
         log4j = Java::org.apache.log4j.Logger.getLogger('jruby')
-        fetch_logger(log4j, new(log4j))
+        fetch_logger(log4j)
       end
 
       def reset # :nodoc:
-        init_store
+        Java::org.apache.log4j.LogManager.getCurrentLoggers.each do |l|
+          l.ruby_logger = nil
+        end
       end
 
       private
 
-      def fetch_logger(log4j_logger, default)
-        @logger_mapping.putIfAbsent(log4j_logger.getName, default) || @logger_mapping.get(log4j_logger.getName)
-      end
-
-      def init_store
-        @logger_mapping = Java::java.util.concurrent.ConcurrentHashMap.new
+      def fetch_logger(log4j_logger)
+        Java::org.apache.log4j.Logger.getLogger(log4j_logger.getName).ruby_logger
       end
     end
 
@@ -171,7 +169,7 @@ module Log4jruby
     end
 
     def parent
-      fetch_logger(log4j_logger.parent, Logger.root)
+      fetch_logger(log4j_logger.parent)
     end
 
     private
@@ -218,10 +216,9 @@ module Log4jruby
       Java::org.apache.log4j.MDC
     end
 
-    def fetch_logger(log4j_logger, default)
-      self.class.send(:fetch_logger, log4j_logger, default)
+    def fetch_logger(log4j_logger)
+      self.class.send(:fetch_logger, log4j_logger)
     end
   end
 end
 
-Log4jruby::Logger.send(:init_store) #Avoid lazy-initialization thread-safety issues on logger_mapping
