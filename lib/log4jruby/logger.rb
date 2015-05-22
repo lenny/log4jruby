@@ -175,6 +175,15 @@ module Log4jruby
       fetch_logger(log4j_logger.parent)
     end
 
+    def silence(temporary_level = ::Logger::ERROR)
+      begin
+        old_logger_level, self.level = level, temporary_level
+        yield self
+      ensure
+        self.level = old_logger_level
+      end
+    end
+
     private
 
     def initialize(logger) # :nodoc:
