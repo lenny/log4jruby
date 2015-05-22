@@ -1,5 +1,9 @@
 # log4jruby Changelog
 
+## v2.0.0.rc3
+
+* Add Logger#silence for ActiveSupport::Logger compatibility - https://github.com/lenny/log4jruby/pull/11
+
 ## v2.0.0.rc2
 
 * Internal implementation changes - https://github.com/lenny/log4jruby/pull/8
