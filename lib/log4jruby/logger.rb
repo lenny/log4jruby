@@ -175,6 +175,8 @@ module Log4jruby
       fetch_logger(log4j_logger.parent)
     end
 
+    # Compatibility with ActiveSupport::Logger
+    # needed to use a Log4jruby::Logger as an ActiveRecord::Base.logger
     def silence(temporary_level = ::Logger::ERROR)
       begin
         old_logger_level, self.level = level, temporary_level
