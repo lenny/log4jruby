@@ -1,5 +1,5 @@
 
-module Log4jruby
+module Log4jruby::Support
   module LoggerSilencer
     def self.included(base)
       base.send :include, InstanceMethods

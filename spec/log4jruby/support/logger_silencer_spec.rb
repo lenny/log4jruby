@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'log4jruby'
 
 module Log4jruby
-  describe LoggerSilencer do
+  describe Support::LoggerSilencer do
     before { Logger.reset }
     subject { Logger.get('Test', :level => :debug) }
 
