@@ -1,6 +1,7 @@
 require 'log4jruby/support/log4j_args'
 
 require 'logger'
+require 'log4jruby/support/logger_silencer'
 
 module Log4jruby
 
@@ -11,6 +12,8 @@ module Log4jruby
   # * Ruby and Java exceptions are logged with backtraces.
   # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber})
   class Logger
+    include Log4jruby::Support::LoggerSilencer
+
     LOG4J_LEVELS = {
         Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
         Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
@@ -170,6 +173,17 @@ module Log4jruby
 
     def parent
       fetch_logger(log4j_logger.parent)
+    end
+
+    # Compatibility with ActiveSupport::Logger
+    # needed to use a Log4jruby::Logger as an ActiveRecord::Base.logger
+    def silence(temporary_level = ::Logger::ERROR)
+      begin
+        old_logger_level, self.level = level, temporary_level
+        yield self
+      ensure
+        self.level = old_logger_level
+      end
     end
 
     private
