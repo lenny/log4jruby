@@ -19,7 +19,7 @@ configured (e.g., log4j.properties in the CLASSPATH). The examples should give y
 
 ### Features
 
-* Filename, line number, and method name are available (if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
+* Filename, line number, and method name are available (if tracing is on) to your appender layout via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html).
 * Exceptions can be logged directly and are output with backtraces. Java Exceptions (i.e., NativeExceptions)
   are logged with full java backtrace(including nested exceptions).
 * Logging config for your ruby code can be added to your existing configuration. Ruby logger names are mapped to dot separated names prefixed with <tt>.jruby</tt>
