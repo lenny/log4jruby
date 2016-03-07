@@ -11,16 +11,16 @@ It is geared more toward those who are using JRuby to integrate with and build o
 The <tt>Log4jruby::Logger</tt> provides an interface much like the standard ruby {Logger}[http://ruby-doc.org/core/classes/Logger.html].
 Logging is configured via traditional Log4j methods.
 
-The primary use case(i.e. mine) for this library is that you are already up and running with Log4j and now you want
+The primary use case (i.e., mine) for this library is that you are already up and running with Log4j and now you want
 to use it for your Ruby code too. There is not much help here for configuration. In our environment, we deploy Rails
 apps that call and extend Java code into Tomcat as WARs and use a log4j.properties to configure. For the most part,
 all there is to using log4jruby is making sure the log4j jar is <tt>required</tt> and that Log4j is at least minimally
-configured(e.g. log4j.properties in the CLASSPATH). The examples should give you the idea.
+configured (e.g., log4j.properties in the CLASSPATH). The examples should give you the idea.
 
 === Features
 
-* Filename, line number, and method name are available(if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
-* Exceptions can be logged directly and are output with backtraces. Java Exceptions(i.e. NativeExceptions)
+* Filename, line number, and method name are available (if tracing is on) to your appender layout via {MDC}[http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html].
+* Exceptions can be logged directly and are output with backtraces. Java Exceptions (i.e., NativeExceptions)
   are logged with full java backtrace(including nested exceptions).
 * Logging config for your ruby code can be added to your existing configuration. Ruby logger names are mapped to dot separated names prefixed with <tt>.jruby</tt>
 
