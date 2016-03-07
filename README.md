@@ -37,7 +37,7 @@ As noted above, configuring log4j is left to the client. **You must load and con
 There are multiple ways to do so. 
 In our environment, we deploy Rails apps that call and extend Java code to Tomcat as WAR files.
 We provision our app servers with ```log4j.jar``` and a ```log4j.properties``` file in in ```$TOMCAT_HOME/lib```. 
-You may also addd log4j.jar and path to config file into CLASSPATH via environment variables, JAVA_OPTS, JAVA_OPTS, etc...
+You may also add log4j.jar and path to config file into CLASSPATH via environment variables, JAVA_OPTS, JAVA_OPTS, etc...
 Or add them into ```$CLASSPATH``` at runtime before loading log4jruby. See [examples/setup.rb](examples/setup.rb). 
   
 Note: If you're using bundler, you can specify ```gem 'log4jruby', require: false``` in your Gemfile to delay loading the gem too early.
