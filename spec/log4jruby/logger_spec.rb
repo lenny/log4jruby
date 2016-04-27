@@ -320,6 +320,35 @@ module Log4jruby
     end
 
     describe '#silence', 'temporarily changes the log level' do
+      context 'thread safety' do
+        it 'is thread-safe' do
+          logger = Logger.get('Thread-safe', level: :info)
+          threads = []
+          2.times do
+            threads << Thread.new do
+              1000.times do |i|
+                logger.silence { logger.info 'I am silenced'}
+              end
+            end
+          end
+
+          threads.each(&:join)
+          expect(logger.level).to eql(1)
+        end
+
+        it 'should assign each thread its own local level' do
+          threads = []
+          2.times do
+            threads << Thread.new do
+              1000.times do |i|
+                subject.silence(::Logger::WARN) { expect(subject.level).to eql(2) }
+              end
+            end
+          end
+          threads.each(&:join)
+        end
+      end
+
       it 'should change the log level inside the block' do
         subject.silence(::Logger::WARN) do
           expect(subject.level).to eq(::Logger::WARN)

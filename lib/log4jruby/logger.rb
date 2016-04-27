@@ -88,7 +88,7 @@ module Log4jruby
     end
 
     def level
-      LOG4J_LEVELS[@logger.effectiveLevel]
+      local_level || LOG4J_LEVELS[@logger.effectiveLevel]
     end
 
     def flush
@@ -172,15 +172,36 @@ module Log4jruby
       fetch_logger(log4j_logger.parent)
     end
 
+    def local_levels
+      @local_levels ||= Java::java.util.concurrent.ConcurrentHashMap.new(2)
+    end
+
+    def local_log_id
+      Thread.current.__id__
+    end
+
+    def local_level
+      local_levels[local_log_id]
+    end
+
+    def local_level=(level)
+      if level
+        local_levels[local_log_id] = level
+      else
+        local_levels.delete(local_log_id)
+      end
+    end
+
     # Compatibility with ActiveSupport::Logger
     # needed to use a Log4jruby::Logger as an ActiveRecord::Base.logger
     def silence(temporary_level = ::Logger::ERROR)
       begin
-        old_logger_level, self.level = level, temporary_level
-        yield self
-      ensure
-        self.level = old_logger_level
-      end
+       old_local_level = local_level
+       self.local_level = temporary_level
+       yield self
+     ensure
+       self.local_level = old_local_level
+     end
     end
 
     private
@@ -232,4 +253,3 @@ module Log4jruby
     end
   end
 end
-
