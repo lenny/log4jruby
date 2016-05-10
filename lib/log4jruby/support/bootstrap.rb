@@ -16,3 +16,10 @@ Java::org.apache.log4j.Logger.class_eval do
     end
   end
 end
+
+# https://github.com/lenny/log4jruby/issues/14
+# https://github.com/jruby/jruby/wiki/Persistence
+if Java::org.apache.log4j.Logger.respond_to?(:__persistent__)
+  Java::org.apache.log4j.Logger.__persistent__ = true
+end
+
