@@ -1,5 +1,9 @@
 # log4jruby Changelog
 
+## v2.0.1
+
+* JRuby 9K compatibility - https://github.com/lenny/log4jruby/issues/14
+
 ## v2.0.0
 
 * Documentation additions, corrections.
