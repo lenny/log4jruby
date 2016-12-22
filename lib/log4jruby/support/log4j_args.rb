@@ -29,7 +29,11 @@ module Log4jruby
         private
 
         def append_ruby_error(msg, error)
-          append(msg, "#{error}\n  " + error.backtrace.join("\n  "))
+          if error.backtrace
+            append(msg, "#{error}\n  " + error.backtrace.join("\n  "))
+          else
+            append(msg, error)
+          end
         end
 
         def append(msg, s)

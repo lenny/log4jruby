@@ -26,6 +26,15 @@ module Log4jruby
         end
       end
 
+      context 'with only a ruby exception without backtrace' do
+        it 'should return [<stringified exception message >, nil]' do
+          ruby_error = RuntimeError.new('my message')
+          allow(ruby_error).to receive(:backtrace).and_return(nil)
+
+          expect(Log4jArgs.convert(ruby_error)).to eq(["my message", nil])
+        end
+      end
+
       context 'with a message and ruby exception' do
         it 'should return [<msg> + <stringified exception message > + <backtrace>, nil]' do
           ruby_error = RuntimeError.new('my error')
