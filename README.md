@@ -96,3 +96,8 @@ See more in [log4jruby/examples](examples).
 See more in [log4jruby/examples](examples)..
 They should be runnable from the source.
 
+### Development
+
+Install log4j for tests and examples
+
+`rake dev:java_deps`
