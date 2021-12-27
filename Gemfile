@@ -4,6 +4,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :test, :development do
-  gem 'rake', '~> 10.0.1', :require => false
-  gem 'rspec', '~> 3.2.0'
+  gem 'rake', '~> 13.0.6', :require => false
+  gem 'rspec', '~> 3.10.0'
 end
