@@ -9,7 +9,6 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>log4jruby</name>
-  <!-- FIXME change it to the project's website -->
   <url>https://github.com/lenny/log4jruby</url>
 
   <properties>
