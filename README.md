@@ -1,80 +1,23 @@
 # Log4jruby
 
-* https://github.com/lenny/log4jruby
+`Log4jruby` provides an interface mostly compatible with the standard ruby [Logger](http://ruby-doc.org/core/classes/Logger.html) but backed by  [Log4j](http://logging.apache.org/log4j/1.2/apidocs/index.html). This makes the granular log output configuration, stacktrace output, and other facilities of `log4j` available to Java and Ruby code alike. For projects that extend/integrate Java already dependent on `log4j`, it allows log configuration for Java and Ruby code in one spot.
 
-## Description:
+_Note*_ Currently log4j 1.2 only
 
-Log4jruby is a thin wrapper around the [Log4j Logger](http://logging.apache.org/log4j/1.2/apidocs/index.html).
-It is geared more toward those who are using JRuby to integrate with and build on top of Java code that uses Log4j.
-The `Log4jruby::Logger` provides an interface much like the standard ruby [Logger](http://ruby-doc.org/core/classes/Logger.html).
-Logging is configured via traditional Log4j methods.
+* Automatic stacktrace output (including nested causes) for logged exceptions
+* Configure Java and Ruby logging together (e.g a single `log4j.properties` file) and gain `log4j` features such as runtime output targets for Ruby code.
+* Supports inclusion of filename, line number, and method name in log messages via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html). Note: `tracing` must be enabled.
+* High level support for class based logging via the `enable_logger` macro. 
+* Compatible with the `Rails` logging.
 
-The primary use case (i.e., mine) for this library is that you are already up and running with Log4j and now you want
-to use it for your Ruby code too. There is not much help here for configuration. In our environment, we deploy Rails
-apps that call and extend Java code into Tomcat as WARs and use a log4j.properties to configure. For the most part,
-all there is to using log4jruby is making sure the log4j jar is <tt>required</tt> and that Log4j is at least minimally
-configured (e.g., log4j.properties in the CLASSPATH). The examples should give you the idea.
 
-### Features
+### Usage and examples
 
-* Filename, line number, and method name are available (if tracing is on) to your appender layout via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html).
-* Exceptions can be logged directly and are output with backtraces. Java Exceptions (i.e., `NativeExceptions`)
-  are logged with full java backtrace(including nested exceptions).
-* Logging config for your ruby code can be added to your existing configuration. Ruby logger names are mapped to dot separated names prefixed with <tt>.jruby</tt>
-```ini
- log4j.appender.Ruby=org.apache.log4j.ConsoleAppender
- log4j.appender.Ruby.layout=org.apache.log4j.PatternLayout
- log4j.appender.Ruby.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
- ...
- log4j.logger.jruby=info,Ruby
- log4j.logger.jruby.MyClass=debug
-```
-### Configuration
-
-As noted above, configuring log4j is left to the client. **You must load and configure log4j before requiring log4jruby**.
-There are multiple ways to do so. 
-In our environment, we deploy Rails apps that call and extend Java code to Tomcat as WAR files.
-We provision our app servers with `log4j.jar` and a `log4j.properties` file in in `$TOMCAT_HOME/lib`. 
-You may also add log4j.jar and path to config file into CLASSPATH via environment variables, `JAVA_OPTS`, `JAVA_OPTS`, etc...
-Or add them into `$CLASSPATH` at runtime before loading log4jruby. See [examples/setup.rb](examples/setup.rb). 
-  
-Note: If you're using bundler, you can specify `gem 'log4jruby', require: false` in your Gemfile to delay loading the gem too early.
-  
-In a Rails application, add the following in `config/application.rb` or the appropriate `config/environments` file.
-```ini
- config.logger = ActiveSupport::TaggedLogging.new(Log4jruby::Logger.get('MyApp'))
-```
-or older versions of Rails
-```ini
- config.logger = Log4jruby::Logger.get('MyApp')
-```
-### Examples
+Enable class level logging via `enable_logger`
 
 ```ruby
- def foo
-   logger.debug("hello from foo")
-   bar
- rescue => e
-   logger.error(e)
- end
-```
+ require 'log4jruby'
 
-```bash
- DEBUG jruby.MyClass foo:17 - hello from foo
- DEBUG jruby.MyClass bar:24 - hello from bar
- DEBUG jruby.MyClass baz:29 - hello from baz
- ERROR jruby.MyClass foo:20 - error from baz
-   examples/simple.rb:30:in `baz'
-   examples/simple.rb:25:in `bar'
-   examples/simple.rb:18:in `foo'
-   examples/simple.rb:35:in `(root)'
-```
-
-See more in [log4jruby/examples](examples).
-
-### Usage
-
-```ruby
  class MyClass
    enable_logger
 
@@ -89,12 +32,111 @@ See more in [log4jruby/examples](examples).
    end
  end
 ```
-```bash
- INFO jruby.MyModule.A my_class_method:14 - hello from class method
- INFO jruby.MyModule.A my_method:19 - hello from instance method
+
+Custom logger name
+
+```ruby
+logger = Log4jruby::Logger.get('my.logger')
+logger.debug('something')
 ```
-See more in [log4jruby/examples](examples)..
-They should be runnable from the source.
+
+Log4jruby logger names are prefixed with `.jruby`.
+
+e.g. `log4j.properties`
+
+```ini
+ ...
+ log4j.logger.jruby=info,Console
+ log4j.logger.jruby.MyClass=debug
+ log4j.logger.jruby.my.logger=error
+```
+
+Inclusion of filename, line number, and method name in log messages via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html)
+
+e.g.
+
+```ini
+log4j.appender.Ruby.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
+```
+
+enable tracing globally
+
+```
+Log4jruby::Logger.root.tracing = true
+```
+
+or for specific logger
+
+```
+Log4jruby::Logger.get('MyClass', tracing: true)
+```
+
+produces log statements like: 
+
+```
+DEBUG jruby.MyClass foo:17 - hello from foo
+```
+
+Exceptions are logged with backtraces
+
+```bash
+$ ruby ./examples/nested_ruby_exceptions.rb 
+RuntimeError: raised from foo
+     foo at ./examples/nested_ruby_exceptions.rb:13
+  <main> at ./examples/nested_ruby_exceptions.rb:26
+RuntimeError: raised from bar
+     bar at ./examples/nested_ruby_exceptions.rb:19
+     foo at ./examples/nested_ruby_exceptions.rb:11
+  <main> at ./examples/nested_ruby_exceptions.rb:26
+RuntimeError: raised from baz
+     baz at ./examples/nested_ruby_exceptions.rb:23
+     bar at ./examples/nested_ruby_exceptions.rb:17
+     foo at ./examples/nested_ruby_exceptions.rb:11
+  <main> at ./examples/nested_ruby_exceptions.rb:26
+```
+
+
+```
+logger.warn(exception)
+```
+
+```
+logger.warn { exception }
+```
+
+Some [Log4j Logger](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Logger.html) compatible signatures addded.
+
+```
+logger.log_error(msg, exception)
+```
+
+See more in [log4jruby/examples](examples).
+
+
+### Configuration
+
+Configuring log4j is left to the client via the [standard log4j configuration process](https://logging.apache.org/log4j/1.2/manual.html). 
+
+E.g.
+
+Create a `log4j.properties` file and make sure it is available in your classpath. 
+
+The log4j 1.2 jar must be found in your classpath when `log4jruby` is loaded. 
+
+* Place files somewhere already in your classpath such as `$TOMCAT/lib` for Tomcat. 
+* Configure classpath via `JAVA_OPTS`
+* Amend `$CLASSPATH` at runtime before loading log4jruby. See [examples/setup.rb](examples/setup.rb). 
+  
+Note: If you're using bundler, you can specify `gem 'log4jruby', require: false` in your Gemfile to delay loading the gem too early.
+
+In a Rails application, add the following in `config/application.rb` or the appropriate `config/environments` file.
+```ini
+ config.logger = ActiveSupport::TaggedLogging.new(Log4jruby::Logger.get('MyApp'))
+```
+or older versions of Rails
+```ini
+ config.logger = Log4jruby::Logger.get('MyApp')
+```
 
 ### Development
 

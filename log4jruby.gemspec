@@ -25,4 +25,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.platform = 'java'
   gem.license = 'MIT'
+
+  # jruby >= 9.3.0.0
+  gem.required_ruby_version = '~> 2.6.8'
 end
