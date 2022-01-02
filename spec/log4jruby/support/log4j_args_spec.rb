@@ -2,115 +2,207 @@ require 'spec_helper'
 
 require 'log4jruby/support/log4j_args'
 
-module Log4jruby
-  module Support
-    describe Log4jArgs do
-      context 'with only a non-exception' do
-        it 'should return [msg, nil]' do
-          expect(Log4jArgs.convert('testing')).to eq(['testing', nil])
-        end
+module Log4jruby::Support
+  describe Log4jArgs do
+    # Failed to define behavior via declarative rules. Just mapping
+    # it out explicitly.
+    #
+    # 0 - nil
+    # 1 - throwable
+    # 2 - non throwable
+    #
+    #     arg1, arg2, yielded val
+    # 01: 000
+    # 02: 001
+    # 03: 002
+    # 04: 010
+    # 05: 011
+    # 06: 012
+    # ....
+    describe 'arg permutations' do
+      example '01: no args' do
+        expect(Log4jArgs.convert).to eq(['', nil])
       end
 
-      context 'with only a block' do
-        it 'should return [msg, nil]' do
-          expect(Log4jArgs.convert { 'testing' }).to eq(['testing', nil])
-        end
+      example '02: () { throwable }' do
+        e = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert { e }
+        expect(msg).to eq('foo')
+        expect(throwable).to be_kind_of(Java::java.lang.Exception)
       end
 
-      context 'with only a ruby exception' do
-        it 'should return [<stringified exception message > + <backtrace>, nil]' do
-          ruby_error = RuntimeError.new('my message')
-          allow(ruby_error).to receive(:backtrace).and_return(%w(line1 line2))
-
-          expect(Log4jArgs.convert(ruby_error)).to eq(["my message\n  line1\n  line2", nil])
-        end
+      example '03: () { non-throwable })' do
+        expect(Log4jArgs.convert { 'foo' }).to eq(['foo', nil])
       end
 
-      context 'with only a ruby exception without backtrace' do
-        it 'should return [<stringified exception message >, nil]' do
-          ruby_error = RuntimeError.new('my message')
-          allow(ruby_error).to receive(:backtrace).and_return(nil)
-
-          expect(Log4jArgs.convert(ruby_error)).to eq(["my message", nil])
-        end
+      example '04: (nil, throwable)' do
+        e = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert(nil, e)
+        expect(msg).to eq('foo')
+        expect(throwable.message).to match(/foo/)
       end
 
-      context 'with a message and ruby exception' do
-        it 'should return [<msg> + <stringified exception message > + <backtrace>, nil]' do
-          ruby_error = RuntimeError.new('my error')
-          allow(ruby_error).to receive(:backtrace).and_return(%w(line1 line2))
-
-          expect(Log4jArgs.convert('my message', ruby_error)).to eq(["my message\nmy error\n  line1\n  line2", nil])
-        end
+      example '05: (nil, throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        msg, throwable = Log4jArgs.convert(nil, e1) { e2 }
+        expect(msg).to eq('foo: bar')
+        expect(throwable.message).to match(/foo/)
       end
 
-      context 'with a NativeException',
-              "should return [<exception message> + <backtrace> + 'NativeException:', <wrapped java exception>]" do
-        let(:native_exception) do
-          native_exception = nil
-          begin
-            java.lang.Long.new('not a number')
-          rescue NativeException => e
-            native_exception = e
-          end
-          native_exception
-        end
-
-        specify 'first arg should include ruby exception message' do
-          expect(Log4jArgs.convert(native_exception)[0]).to include('not a number')
-        end
-
-        specify 'first arg should include ruby exception backtrace' do
-          expect(Log4jArgs.convert(native_exception)[0]).to include(__FILE__.to_s)
-        end
-
-        specify "first arg should end with \nNativeException:" do
-          expect(Log4jArgs.convert(native_exception)[0]).to match(/\nNativeException:$/)
-        end
-
-        specify 'second arg is wrapped java exception' do
-          expect(Log4jArgs.convert(native_exception)[1]).to be_instance_of(java.lang.NumberFormatException)
-        end
+      example '06: (nil, throwable) { non-throwable }' do
+        e1 = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert(nil, e1) { 'non-throwable' }
+        expect(msg).to eq('foo: non-throwable')
+        expect(throwable.message).to match(/foo/)
       end
 
-      context 'with a message and a NativeException',
-              'should return [<message> + <exception message> + <backtrace>, <wrapped java exception>]' do
-
-        let(:native_exception) do
-          native_exception = nil
-          begin
-            java.lang.Long.new('not a number')
-          rescue NativeException => e
-            native_exception = e
-          end
-          native_exception
-        end
-
-        specify 'first arg should include message' do
-          expect(Log4jArgs.convert('my message', native_exception)[0]).to include('my message')
-        end
-
-        specify 'first arg should include ruby exception message' do
-          expect(Log4jArgs.convert('my message', native_exception)[0]).to include('not a number')
-        end
-
-        specify 'first arg should include ruby exception backtrace' do
-          expect(Log4jArgs.convert('my message', native_exception)[0]).to include(__FILE__.to_s)
-        end
-
-        specify 'second arg is the wrapped java exception' do
-          expect(Log4jArgs.convert('my message', native_exception)[1]).to be_instance_of(java.lang.NumberFormatException)
-        end
+      example '07: (nil, non-throwable)' do
+        expect(Log4jArgs.convert(nil, 'foo')).to eq(['foo', nil])
       end
 
-
-      context 'with unwrapped java exception' do
-        it "should return ['', throwable]" do
-          throwable = java.lang.IllegalArgumentException.new
-
-          expect(Log4jArgs.convert(throwable)).to eq(['', throwable])
-        end
+      example '08: (nil, non-throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        expect(Log4jArgs.convert(nil, 'bar') { e1 })
+          .to eq(['bar foo', nil])
       end
+
+      example '09: (nil, non-throwable) { non-throwable }' do
+        expect(Log4jArgs.convert(nil, 'arg2') { 'yielded-text' })
+          .to eq(['arg2 yielded-text', nil])
+      end
+
+      example '10: (throwable)' do
+        e1 = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert(e1)
+        expect(msg).to eq('foo')
+        expect(throwable.message).to match(/foo/)
+      end
+
+      example '11: (throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        expect(Log4jArgs.convert(e1) { e2 })
+          .to eq(['foo: bar', nil])
+      end
+
+      example '12: (throwable) { non-throwable }' do
+        e1 = RuntimeError.new('foo')
+        expect(Log4jArgs.convert(e1) { 'bar' })
+          .to eq(['foo: bar', nil])
+      end
+
+      example '13: (throwable, throwable)' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        msg, throwable = Log4jArgs.convert(e1, e2)
+        expect(msg).to eq('foo')
+        expect(throwable.message).to match(/bar/)
+      end
+
+      example '14: (throwable, throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        e3 = RuntimeError.new('baz')
+        msg, throwable = Log4jArgs.convert(e1, e2) { e3 }
+        expect(msg).to eq('foo: baz')
+        expect(throwable.message).to match(/bar/)
+      end
+
+      example '15: (throwable, throwable) { non-throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        msg, throwable = Log4jArgs.convert(e1, e2) { 'baz' }
+        expect(msg).to eq('foo: baz')
+        expect(throwable.message).to match(/bar/)
+      end
+
+      example '16: (non-throwable, non-throwable)' do
+        expect(Log4jArgs.convert('arg1', 'arg2'))
+          .to eq(['arg1: arg2', nil])
+      end
+
+      example '17: (throwable, non-throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        expect(Log4jArgs.convert(e1, 'arg2') { e2 })
+          .to eq(['foo: arg2 bar', nil])
+      end
+
+      example '18: (throwable, non-throwable) { non-throwable }' do
+        e1 = RuntimeError.new('foo')
+        expect(Log4jArgs.convert(e1, 'arg2') { 'yielded-val' })
+          .to eq(['foo: arg2 yielded-val', nil])
+      end
+
+      example '19: (non-throwable)' do
+        expect(Log4jArgs.convert('non-throwable'))
+          .to eq(['non-throwable', nil])
+      end
+
+      example '20: (non-throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        expect(Log4jArgs.convert('non-throwable') { e1 })
+          .to eq(['non-throwable: foo', nil])
+      end
+
+      example '21: (non-throwable) { non-throwable }' do
+        expect(Log4jArgs.convert('arg1') { 'yielded-val' })
+          .to eq(['arg1: yielded-val', nil])
+      end
+
+      example '22: (non-throwable, throwable)' do
+        e1 = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert('arg1', e1)
+        expect(msg).to eq('arg1')
+        expect(throwable.message).to match(/foo/)
+      end
+
+      example '23: (non-throwable, throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        e2 = RuntimeError.new('bar')
+        msg, throwable = Log4jArgs.convert('arg1', e1) { e2 }
+        expect(msg).to eq('arg1: bar')
+        expect(throwable.message).to match(/foo/)
+      end
+
+      example '24: (non-throwable, throwable) { non-throwable }' do
+        e1 = RuntimeError.new('foo')
+        msg, throwable = Log4jArgs.convert('arg1', e1) { 'yielded-val' }
+        expect(msg).to eq('arg1: yielded-val')
+        expect(throwable.message).to match(/foo/)
+      end
+
+      example '25: (non-throwable, non-throwable)' do
+        expect(Log4jArgs.convert('arg1', 'arg2'))
+          .to eq(['arg1: arg2', nil])
+      end
+
+      example '26: (non-throwable, non-throwable) { throwable }' do
+        e1 = RuntimeError.new('foo')
+        expect(Log4jArgs.convert('arg1', 'arg2') { e1 })
+          .to eq(['arg1: arg2 foo', nil])
+      end
+
+      example '27: (non-throwable, non-throwable) { non-throwable }' do
+        expect(Log4jArgs.convert('arg1', 'arg2') { 'yielded-val' })
+          .to eq(['arg1: arg2 yielded-val', nil])
+      end
+    end
+
+    it 'returns java exceptions directly' do
+      e = Java::java.lang.NumberFormatException.new('not a number')
+      msg, throwable = Log4jArgs.convert { e }
+      expect(msg).to eq('not a number')
+      expect(throwable).to be_instance_of(Java::java.lang.NumberFormatException)
+    end
+
+    it 'returns wrapped ruby exceptions' do
+      e = RuntimeError.new('foo')
+      msg, throwable = Log4jArgs.convert(e)
+      expect(msg).to eq('foo')
+      expect(throwable).to be_kind_of(Java::java.lang.Exception)
     end
   end
 end
+

@@ -124,8 +124,8 @@ module Log4jruby
           subject.send(level, 7)
         end
 
-        it 'should log message and backtrace for ruby exceptions' do
-          expect(log4j).to receive(level).with(/some error.*#{__FILE__}/m, nil)
+        it 'should log ruby exceptions as jruby adapted java RuntinmeExceptions' do
+          expect(log4j).to receive(level).with('some error', kind_of(Java::java.lang.RuntimeException))
           begin
             raise 'some error'
           rescue => e
@@ -133,17 +133,12 @@ module Log4jruby
           end
         end
 
-        it 'should log ruby backtrace and wrapped Throwable for NativeExceptions' do
+        it 'should log java exceptions directly' do
           expect(log4j).to receive(level).
-            with(/not a number.*#{__FILE__}/m, instance_of(java.lang.NumberFormatException))
+            with(/not a number/m, instance_of(java.lang.NumberFormatException))
 
-          begin
-            java.lang.Long.new('not a number')
-          rescue NativeException => e
-            subject.send(level, e)
-          end
+          subject.send(level, java.lang.NumberFormatException.new('not a number'))
         end
-
       end
     end
 
