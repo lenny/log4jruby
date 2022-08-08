@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 require 'log4jruby'
@@ -196,7 +198,7 @@ module Log4jruby
       it 'should set MDC lineNumber for duration of invocation' do
         line = __LINE__ + 5
         expect(log4j).to receive(:debug) do
-          expect(MDC.get('lineNumber')).to eq("#{line}")
+          expect(MDC.get('lineNumber')).to eq(line.to_s)
         end
 
         subject.debug('test')

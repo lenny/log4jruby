@@ -1,4 +1,6 @@
-require File.dirname(__FILE__) + '/setup'
+# frozen_string_literal: true
+
+require "#{File.dirname(__FILE__)}/setup"
 
 require 'log4jruby'
 require 'benchmark'

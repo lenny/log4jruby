@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Log4jruby
   module Support
     class Log4jArgs
@@ -58,7 +60,7 @@ module Log4jruby
           return effective_progname.to_s if filtered_parts.empty?
 
           if effective_progname.nil?
-            "#{filtered_parts.join(' ')}"
+            filtered_parts.join(' ').to_s
           else
             "#{effective_progname}: #{filtered_parts.join(' ')}"
           end

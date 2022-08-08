@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'log4jruby'
 
 module Log4jruby

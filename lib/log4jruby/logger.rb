@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'log4jruby/support/log4j_args'
 
 require 'logger'
@@ -16,7 +18,7 @@ module Log4jruby
       Java::org.apache.log4j.Level::WARN => ::Logger::WARN,
       Java::org.apache.log4j.Level::ERROR => ::Logger::ERROR,
       Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL
-    }
+    }.freeze
 
     # turn tracing on to make fileName, lineNumber, and methodName available to
     # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
@@ -60,11 +62,9 @@ module Log4jruby
     end
 
     def attributes=(values)
-      if values
-        values.each_pair do |k, v|
-          setter = "#{k}="
-          send(setter, v) if respond_to?(setter)
-        end
+      values&.each_pair do |k, v|
+        setter = "#{k}="
+        send(setter, v) if respond_to?(setter)
       end
     end
 

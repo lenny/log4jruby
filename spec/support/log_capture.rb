@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 shared_context 'log capture', log_capture: true do
   let(:log_capture) { @log_stream.toString }
 

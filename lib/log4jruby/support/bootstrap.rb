@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Java::org.apache.log4j.Logger.class_eval do
   attr_accessor :ruby_logger
 
