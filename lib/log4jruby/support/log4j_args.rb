@@ -2,7 +2,6 @@ module Log4jruby
   module Support
     class Log4jArgs
       class << self
-
         # Adapt permutations of ruby Logger arguments into arguments
         # for Log4j Logger with explicit throwable when possible.
         #
@@ -22,24 +21,24 @@ module Log4jruby
           # all the potential argument permutations gracefully.
           yielded_val = block_given? ? yield : nil
 
-          progname, log4j_throwable, msg_parts = nil, nil, []
+          progname = nil
+          log4j_throwable = nil
+          msg_parts = []
 
           if exception?(throwable)
             progname = object
             log4j_throwable = throwable
             msg_parts << yielded_val
+          elsif exception?(object) && throwable.nil? && yielded_val.nil?
+            log4j_throwable = object
+            msg_parts.concat([yielded_val])
           else
-            if exception?(object) && throwable.nil? && yielded_val.nil?
-              log4j_throwable = object
-              msg_parts.concat([yielded_val])
+            progname = object
+            if exception?(yielded_val) && object.nil? && throwable.nil?
+              log4j_throwable = yielded_val
+              msg_parts.concat([throwable])
             else
-              progname = object
-              if exception?(yielded_val) && object.nil? && throwable.nil?
-                log4j_throwable = yielded_val
-                msg_parts.concat([throwable])
-              else
-                msg_parts.concat([throwable, yielded_val])
-              end
+              msg_parts.concat([throwable, yielded_val])
             end
           end
 
@@ -58,9 +57,11 @@ module Log4jruby
 
           return effective_progname.to_s if filtered_parts.empty?
 
-          effective_progname.nil? ?
-            "#{filtered_parts.join(' ')}" :
+          if effective_progname.nil?
+            "#{filtered_parts.join(' ')}"
+          else
             "#{effective_progname}: #{filtered_parts.join(' ')}"
+          end
         end
       end
     end

@@ -8,9 +8,9 @@ module Log4jruby
 
     MDC = Java::org.apache.log4j.MDC
 
-    subject { Logger.get('Test', :level => :debug) }
+    subject { Logger.get('Test', level: :debug) }
 
-    let(:log4j) { subject.log4j_logger}
+    let(:log4j) { subject.log4j_logger }
 
     describe 'mapping to Log4j Logger names' do
       it "should prepend 'jruby.' to specified name" do
@@ -28,7 +28,7 @@ module Log4jruby
       end
 
       it 'should accept attributes hash' do
-        logger = Logger.get("loggex#{object_id}", :level => :fatal, :tracing => true)
+        logger = Logger.get("loggex#{object_id}", level: :fatal, tracing: true)
         expect(logger.log4j_logger.level).to eq(Java::org.apache.log4j.Level::FATAL)
         expect(logger.tracing).to eq(true)
       end
@@ -72,7 +72,7 @@ module Log4jruby
 
     describe 'Rails logger compatabity' do
       it 'should respond to <level>?' do
-        [:debug, :info, :warn].each do |level|
+        %i[debug info warn].each do |level|
           expect(subject.respond_to?("#{level}?")).to eq(true)
         end
       end
@@ -88,15 +88,15 @@ module Log4jruby
 
     describe '#level =' do
       describe 'accepts symbols or ::Logger constants' do
-        [:debug, :info, :warn, :error, :fatal].each do |l|
+        %i[debug info warn error fatal].each do |l|
           example ":#{l}" do
             subject.level = l
             expect(subject.level).to eq(::Logger.const_get(l.to_s.upcase))
           end
         end
 
-        %w(DEBUG INFO WARN ERROR FATAL).each do |l|
-          example "::Logger::#{l}"  do
+        %w[DEBUG INFO WARN ERROR FATAL].each do |l|
+          example "::Logger::#{l}" do
             level_constant = ::Logger.const_get(l.to_sym)
             subject.level = level_constant
             expect(subject.level).to eq(level_constant)
@@ -112,12 +112,12 @@ module Log4jruby
       end
 
       it 'inherits parent level when not explicitly set' do
-        Logger.get('Foo', :level => :fatal)
+        Logger.get('Foo', level: :fatal)
         expect(Logger.get('Foo::Bar').level).to eq(::Logger::FATAL)
       end
     end
 
-    [:debug, :info, :warn, :error, :fatal].each do |level|
+    %i[debug info warn error fatal].each do |level|
       describe "##{level}" do
         it 'should stringify non-exception argument' do
           expect(log4j).to receive(level).with('7', nil)
@@ -128,21 +128,21 @@ module Log4jruby
           expect(log4j).to receive(level).with('some error', kind_of(Java::java.lang.RuntimeException))
           begin
             raise 'some error'
-          rescue => e
+          rescue StandardError => e
             subject.send(level, e)
           end
         end
 
         it 'should log java exceptions directly' do
-          expect(log4j).to receive(level).
-            with(/not a number/m, instance_of(java.lang.NumberFormatException))
+          expect(log4j).to receive(level)
+            .with(/not a number/m, instance_of(java.lang.NumberFormatException))
 
           subject.send(level, java.lang.NumberFormatException.new('not a number'))
         end
       end
     end
 
-    [:debug, :info, :warn].each do |level|
+    %i[debug info warn].each do |level|
       describe "##{level} with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
           expect(log4j).to receive(:isEnabledFor).and_return(true)
@@ -169,16 +169,16 @@ module Log4jruby
       end
 
       it 'should return true with tracing explicitly set to true' do
-        expect(Logger.get('A', :tracing => true).tracing?).to eq(true)
+        expect(Logger.get('A', tracing: true).tracing?).to eq(true)
       end
 
       it 'should return true with tracing unset but set to true on parent' do
-        Logger.get('A', :tracing => true)
+        Logger.get('A', tracing: true)
         expect(Logger.get('A::B').tracing?).to eq(true)
       end
 
       it 'should return false with tracing unset but set to false on parent' do
-        Logger.get('A', :tracing => false)
+        Logger.get('A', tracing: false)
         expect(Logger.get('A::B').tracing?).to eq(false)
       end
 
@@ -239,8 +239,8 @@ module Log4jruby
 
     describe '#log_error(msg, error)' do
       it 'should forward to log4j error(msg, Throwable) signature' do
-        expect(log4j).to receive(:error).
-        with('my message', instance_of(java.lang.IllegalArgumentException))
+        expect(log4j).to receive(:error)
+          .with('my message', instance_of(java.lang.IllegalArgumentException))
 
         subject.log_error('my message', java.lang.IllegalArgumentException.new)
       end
@@ -248,8 +248,8 @@ module Log4jruby
 
     describe '#log_fatal(msg, error)' do
       it 'should forward to log4j fatal(msg, Throwable) signature' do
-        expect(log4j).to receive(:fatal).
-        with('my message', instance_of(java.lang.IllegalArgumentException))
+        expect(log4j).to receive(:fatal)
+          .with('my message', instance_of(java.lang.IllegalArgumentException))
 
         subject.log_fatal('my message', java.lang.IllegalArgumentException.new)
       end
@@ -262,12 +262,12 @@ module Log4jruby
 
       it 'should set values with matching setters' do
         subject.tracing = false
-        subject.attributes = {:tracing => true}
+        subject.attributes = { tracing: true }
         expect(subject.tracing).to eq(true)
       end
 
       it 'should ignore values without matching setter' do
-        subject.attributes = {:no_such_attribute => 'ignore' }
+        subject.attributes = { no_such_attribute: 'ignore' }
       end
     end
 
@@ -287,7 +287,8 @@ module Log4jruby
 
       specify 'msg strings are filtered through Formatter#call(severity, time, name, msg) before sending to log4j' do
         formatter = double('formatter')
-        expect(formatter).to receive(:call).with(:debug, instance_of(Time), 'jruby.loggername', 'foo').and_return('formatted')
+        expect(formatter).to receive(:call).with(:debug, instance_of(Time), 'jruby.loggername',
+                                                 'foo').and_return('formatted')
         logger = Logger.get('loggername', formatter: formatter)
         logger.debug('foo')
         expect(log_capture).to include('formatted')

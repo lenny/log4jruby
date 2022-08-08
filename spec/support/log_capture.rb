@@ -1,6 +1,6 @@
-shared_context 'log capture', :log_capture => true do
+shared_context 'log capture', log_capture: true do
   let(:log_capture) { @log_stream.toString }
-  
+
   before do
     @log_stream = Java::java.io.ByteArrayOutputStream.new
     root_log4j_logger = Log4jruby::Logger.root.log4j_logger

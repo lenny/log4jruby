@@ -1,7 +1,7 @@
 require 'java'
 
 # Add location of log4j.properties into CLASSPATH
-$CLASSPATH << File.dirname(__FILE__) + "/"
+$CLASSPATH << File.dirname(__FILE__) + '/'
 
 $LOAD_PATH << File.dirname(__FILE__) + '/../lib'
 

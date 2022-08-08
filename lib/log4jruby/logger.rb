@@ -3,7 +3,6 @@ require 'log4jruby/support/log4j_args'
 require 'logger'
 
 module Log4jruby
-
   # Author::    Lenny Marks
   #
   # Wrapper around org.apache.log4j.Logger with interface similar to standard ruby Logger.
@@ -12,11 +11,11 @@ module Log4jruby
   # * fileName, lineNumber, methodName available to appender layouts via MDC variables(e.g. %X{lineNumber})
   class Logger
     LOG4J_LEVELS = {
-        Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
-        Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
-        Java::org.apache.log4j.Level::WARN => ::Logger::WARN,
-        Java::org.apache.log4j.Level::ERROR => ::Logger::ERROR,
-        Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL,
+      Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
+      Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
+      Java::org.apache.log4j.Level::WARN => ::Logger::WARN,
+      Java::org.apache.log4j.Level::ERROR => ::Logger::ERROR,
+      Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL
     }
 
     # turn tracing on to make fileName, lineNumber, and methodName available to
@@ -72,19 +71,19 @@ module Log4jruby
     # Shortcut for setting log levels. (:debug, :info, :warn, :error, :fatal)
     def level=(level)
       @logger.level = case level
-      when :debug, ::Logger::DEBUG
-        Java::org.apache.log4j.Level::DEBUG
-      when :info, ::Logger::INFO
-        Java::org.apache.log4j.Level::INFO
-      when :warn, ::Logger::WARN
-        Java::org.apache.log4j.Level::WARN
-      when :error, ::Logger::ERROR
-        Java::org.apache.log4j.Level::ERROR
-      when :fatal, ::Logger::FATAL
-        Java::org.apache.log4j.Level::FATAL
-      else
-        raise NotImplementedError
-      end
+                      when :debug, ::Logger::DEBUG
+                        Java::org.apache.log4j.Level::DEBUG
+                      when :info, ::Logger::INFO
+                        Java::org.apache.log4j.Level::INFO
+                      when :warn, ::Logger::WARN
+                        Java::org.apache.log4j.Level::WARN
+                      when :error, ::Logger::ERROR
+                        Java::org.apache.log4j.Level::ERROR
+                      when :fatal, ::Logger::FATAL
+                        Java::org.apache.log4j.Level::FATAL
+                      else
+                        raise NotImplementedError
+                      end
     end
 
     def level
@@ -92,25 +91,19 @@ module Log4jruby
     end
 
     def flush
-      #rails compatability
+      # rails compatability
     end
 
     def debug(object = nil, &block)
-      if debug?
-        send_to_log4j(:debug, object, nil, &block)
-      end
+      send_to_log4j(:debug, object, nil, &block) if debug?
     end
 
     def info(object = nil, &block)
-      if info?
-        send_to_log4j(:info, object, nil, &block)
-      end
+      send_to_log4j(:info, object, nil, &block) if info?
     end
 
     def warn(object = nil, &block)
-      if warn?
-        send_to_log4j(:warn, object, nil, &block)
-      end
+      send_to_log4j(:warn, object, nil, &block) if warn?
     end
 
     def error(object = nil, &block)
@@ -148,24 +141,22 @@ module Log4jruby
 
     def tracing?
       return @cached_tracing if defined?(@cached_tracing)
-      @cached_tracing = begin
-        if tracing.nil? && self != Logger.root
-          parent.tracing?
-        else
-          tracing == true
-        end
-      end
+
+      @cached_tracing = if tracing.nil? && self != Logger.root
+                          parent.tracing?
+                        else
+                          tracing == true
+                        end
     end
 
     def effective_formatter
       return @formatter if defined?(@formatter)
-      @formatter = begin
-        if @formatter.nil? && self != Logger.root
-          parent.formatter
-        else
-          @formatter
-        end
-      end
+
+      @formatter = if @formatter.nil? && self != Logger.root
+                     parent.formatter
+                   else
+                     @formatter
+                   end
     end
 
     def parent
@@ -175,12 +166,11 @@ module Log4jruby
     # Compatibility with ActiveSupport::Logger
     # needed to use a Log4jruby::Logger as an ActiveRecord::Base.logger
     def silence(temporary_level = ::Logger::ERROR)
-      begin
-        old_logger_level, self.level = level, temporary_level
-        yield self
-      ensure
-        self.level = old_logger_level
-      end
+      old_logger_level = level
+      self.level = temporary_level
+      yield self
+    ensure
+      self.level = old_logger_level
     end
 
     private
@@ -232,4 +222,3 @@ module Log4jruby
     end
   end
 end
-

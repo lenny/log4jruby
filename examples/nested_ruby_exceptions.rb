@@ -2,20 +2,20 @@ require File.dirname(__FILE__) + '/setup'
 
 require 'log4jruby'
 
-logger = Log4jruby::Logger.get('test', :tracing => true, :level => :debug)
+logger = Log4jruby::Logger.get('test', tracing: true, level: :debug)
 
 # In addition to the outer ruby exception with its backtrace,
 # this should also include nested exceptions
 
 def foo
   bar
-rescue
+rescue StandardError
   raise 'raised from foo'
 end
 
 def bar
   baz
-rescue
+rescue StandardError
   raise 'raised from bar'
 end
 

@@ -205,4 +205,3 @@ module Log4jruby::Support
     end
   end
 end
-
