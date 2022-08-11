@@ -68,31 +68,31 @@ module Log4jruby
     end
 
     def debug(object = nil, &block)
-      send_to_log4j(:debug, object, nil, &block) if debug?
+      send_to_log4j(:debug, object, &block) if debug?
     end
 
     def info(object = nil, &block)
-      send_to_log4j(:info, object, nil, &block) if info?
+      send_to_log4j(:info, object, &block) if info?
     end
 
     def warn(object = nil, &block)
-      send_to_log4j(:warn, object, nil, &block) if warn?
+      send_to_log4j(:warn, object, &block) if warn?
     end
 
     def error(object = nil, &block)
-      send_to_log4j(:error, object, nil, &block)
+      send_to_log4j(:error, object, &block)
     end
 
     def log_error(msg, error)
-      send_to_log4j(:error, msg, error)
+      send_to_log4j(:error, msg) { error }
     end
 
     def fatal(object = nil, &block)
-      send_to_log4j(:fatal, object, nil, &block)
+      send_to_log4j(:fatal, object, &block)
     end
 
     def log_fatal(msg, error)
-      send_to_log4j(:fatal, msg, error)
+      send_to_log4j(:fatal, msg) { error }
     end
 
     # return org.apache.log4j.Logger instance backing this Logger
@@ -158,8 +158,8 @@ module Log4jruby
       @logger = logger
     end
 
-    def send_to_log4j(level, object, error, &block)
-      progname, msg, throwable = Support::Log4jArgs.convert(object, error, &block)
+    def send_to_log4j(level, object, &block)
+      progname, msg, throwable = Support::Log4jArgs.convert(object, &block)
       if (f = formatter)
         msg = f.call(level, Time.now, progname, msg)
       end
