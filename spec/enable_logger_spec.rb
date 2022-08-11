@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 require 'log4jruby'
 
-describe '.enable_logger injects a logger', :log_capture => true do
+describe '.enable_logger injects a logger', log_capture: true do
   class LogEnabledClass
     enable_logger
 
