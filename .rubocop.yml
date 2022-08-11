@@ -1,0 +1,22 @@
+AllCops:
+  NewCops: enable
+
+Layout/LineLength:
+  Max: 99
+  AutoCorrect: true
+Metrics/AbcSize:
+  Max: 17
+Metrics/MethodLength:
+  Max: 15
+Metrics/ClassLength:
+  Max: 120
+
+Metrics/BlockLength:
+  Exclude:
+    - spec/**/*
+    - lib/tasks/**/*
+
+Metrics/ModuleLength:
+  Exclude:
+    - spec/**/*
+    - lib/tasks/**/*
