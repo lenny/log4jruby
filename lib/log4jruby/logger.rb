@@ -130,7 +130,6 @@ module Log4jruby
 
       @formatter = self == Logger.root ? nil : parent.formatter
     end
-    alias effective_formatter formatter
 
     # @param [::Logger::Formatter]
     attr_writer :formatter
@@ -161,7 +160,7 @@ module Log4jruby
 
     def send_to_log4j(level, object, error, &block)
       progname, msg, throwable = Support::Log4jArgs.convert(object, error, &block)
-      if (f = effective_formatter)
+      if (f = formatter)
         msg = f.call(level, Time.now, progname, msg)
       end
       if tracing?
