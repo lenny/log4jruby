@@ -127,7 +127,8 @@ module Log4jruby
         end
 
         it 'should log ruby exceptions as jruby adapted java RuntinmeExceptions' do
-          expect(log4j).to receive(level).with('some error', kind_of(Java::java.lang.RuntimeException))
+          expect(log4j).to receive(level).with('some error',
+                                               kind_of(Java::java.lang.RuntimeException))
           begin
             raise 'some error'
           rescue StandardError => e
@@ -160,12 +161,6 @@ module Log4jruby
     end
 
     describe '#tracing?', 'should be inherited' do
-      before do
-        Logger.root.tracing = nil
-        Logger.get('A::B').tracing = nil
-        Logger.get('A').tracing = nil
-      end
-
       it 'should return false with tracing unset anywhere' do
         expect(Logger['A'].tracing?).to eq(false)
       end
@@ -325,7 +320,9 @@ module Log4jruby
       end
 
       it 'should restore the log level after the block' do
+        expect(subject.level).to eq(::Logger::DEBUG)
         subject.silence(::Logger::WARN) do
+          expect(subject.level).to eq(::Logger::WARN)
         end
         expect(subject.level).to eq(::Logger::DEBUG)
       end

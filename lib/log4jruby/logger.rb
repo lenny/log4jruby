@@ -113,24 +113,27 @@ module Log4jruby
     end
 
     def tracing?
-      return @cached_tracing if defined?(@cached_tracing)
+      return @tracing if defined?(@tracing)
 
-      @cached_tracing = if tracing.nil? && self != Logger.root
-                          parent.tracing?
-                        else
-                          tracing == true
-                        end
+      @tracing = self == Logger.root ? false : parent.tracing?
+    end
+    alias tracing tracing?
+
+    # turn tracing on to make fileName, lineNumber, and methodName available to
+    # appender layout through MDC(ie. %X{fileName} %X{lineNumber} %X{methodName})
+    def tracing=(bool)
+      @tracing = !!bool
     end
 
-    def effective_formatter
+    def formatter
       return @formatter if defined?(@formatter)
 
-      @formatter = if @formatter.nil? && self != Logger.root
-                     parent.formatter
-                   else
-                     @formatter
-                   end
+      @formatter = self == Logger.root ? nil : parent.formatter
     end
+    alias effective_formatter formatter
+
+    # @param [::Logger::Formatter]
+    attr_writer :formatter
 
     def parent
       fetch_logger(log4j_logger.parent)
