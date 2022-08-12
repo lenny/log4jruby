@@ -40,7 +40,7 @@ module Log4jruby
         end
 
         def new_ruby_logger_with_formatter(formatter)
-          ruby_logger = Logger.new(StringIO.new)
+          ruby_logger = ::Logger.new(StringIO.new)
           ruby_logger.formatter = formatter
           ruby_logger
         end
