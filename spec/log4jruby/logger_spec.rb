@@ -4,11 +4,11 @@ require 'spec_helper'
 
 require 'log4jruby'
 
+MDC = Java::org.apache.log4j.MDC
+
 module Log4jruby
   describe Logger do
     before { Logger.reset }
-
-    MDC = Java::org.apache.log4j.MDC
 
     subject { Logger.get('Test', level: :debug) }
 
@@ -121,13 +121,13 @@ module Log4jruby
 
     %i[debug info warn error fatal].each do |level|
       describe "##{level}" do
-        it 'should stringify non-exception argument' do
-          expect(log4j).to receive(level).with('7', nil)
+        it 'should stringify non-exception argument via default formatter' do
+          expect(log4j).to receive(level).with(/7/, nil)
           subject.send(level, 7)
         end
 
         it 'should log ruby exceptions as jruby adapted java RuntinmeExceptions' do
-          expect(log4j).to receive(level).with('some error',
+          expect(log4j).to receive(level).with(/some error/,
                                                kind_of(Java::java.lang.RuntimeException))
           begin
             raise 'some error'
@@ -138,8 +138,7 @@ module Log4jruby
 
         it 'should log java exceptions directly' do
           expect(log4j).to receive(level)
-            .with(/not a number/m, instance_of(java.lang.NumberFormatException))
-
+            .with(/not a number/, instance_of(java.lang.NumberFormatException))
           subject.send(level, java.lang.NumberFormatException.new('not a number'))
         end
       end
@@ -149,7 +148,7 @@ module Log4jruby
       describe "##{level} with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
           expect(log4j).to receive(:isEnabledFor).and_return(true)
-          expect(log4j).to receive(level).with('test', nil)
+          expect(log4j).to receive(level).with(/test/, nil)
           subject.send(level) { 'test' }
         end
 
@@ -237,8 +236,7 @@ module Log4jruby
     describe '#log_error(msg, error)' do
       it 'should forward to log4j error(msg, Throwable) signature' do
         expect(log4j).to receive(:error)
-          .with('my message', instance_of(java.lang.IllegalArgumentException))
-
+          .with(/my message/, instance_of(java.lang.IllegalArgumentException))
         subject.log_error('my message', java.lang.IllegalArgumentException.new)
       end
     end
@@ -246,8 +244,7 @@ module Log4jruby
     describe '#log_fatal(msg, error)' do
       it 'should forward to log4j fatal(msg, Throwable) signature' do
         expect(log4j).to receive(:fatal)
-          .with('my message', instance_of(java.lang.IllegalArgumentException))
-
+          .with(/my message/, instance_of(java.lang.IllegalArgumentException))
         subject.log_fatal('my message', java.lang.IllegalArgumentException.new)
       end
     end
@@ -282,12 +279,13 @@ module Log4jruby
         expect(logger.formatter).to eq(formatter)
       end
 
-      specify 'msg strings are filtered through Formatter#call(severity, time, name, msg) before sending to log4j' do
+      specify 'msg strings are filtered through Formatter#call(severity, time, name, msg) ' \
+              'before sending to log4j' do
         formatter = double('formatter')
-        expect(formatter).to receive(:call).with(:debug, instance_of(Time), 'jruby.loggername',
-                                                 'foo').and_return('formatted')
+        expect(formatter).to receive(:call).with(:debug, instance_of(Time), :foo,
+                                                 :bar).and_return('formatted')
         logger = Logger.get('loggername', formatter: formatter)
-        logger.debug('foo')
+        logger.debug(:foo) { :bar }
         expect(log_capture).to include('formatted')
       end
 
@@ -309,6 +307,11 @@ module Log4jruby
         expect(log_capture.lines.to_a[1]).to include('formatted b')
         expect(log_capture.lines.to_a[2]).to include('formatted c')
         expect(log_capture.lines.to_a[3]).to include('formatted c')
+      end
+
+      specify 'default formatter matches ::Logger::Formatter with level and time stripped out' do
+        expect(log4j).to receive(:debug).with('-- progname: message', nil)
+        subject.debug('progname') { 'message' }
       end
     end
 

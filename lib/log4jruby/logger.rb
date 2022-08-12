@@ -128,7 +128,11 @@ module Log4jruby
     def formatter
       return @formatter if defined?(@formatter)
 
-      @formatter = self == Logger.root ? nil : parent.formatter
+      @formatter = if self == Logger.root
+                     ->(_severity, _datetime, progname, msg) { "-- #{progname}: #{msg}" }
+                   else
+                     parent.formatter
+                   end
     end
 
     # @param [::Logger::Formatter]
