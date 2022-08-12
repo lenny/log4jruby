@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Log4jruby
+  # Support namespace
   module Support
   end
 end

@@ -25,4 +25,8 @@ def baz
   raise 'raised from baz'
 end
 
-foo
+begin
+  foo
+rescue StandardError => e
+  logger.error(e)
+end
