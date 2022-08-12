@@ -2,68 +2,42 @@
 
 module Log4jruby
   module Support
+    # Translate logger args for use by Ruby Logger formatter and log4j.
+    # Intention is to matches the Ruby Logger for common parameters
     class Log4jArgs
       class << self
         # Adapt permutations of ruby Logger arguments into arguments
         # for Log4j Logger with explicit throwable when possible.
         #
-        # Treats arguments as strings when given unexpected types.
+        # The :progname and :msg returned by this method matches
+        # the arguments that would be passed to a
+        # Ruby Logger#formatter
         #
-        # @param object [String | Exception] - Correlates to the `progname` arg of ruby Logger.
-        #                                      Exception passed to Log4j as throwable when no other
-        #                                      arguments are provided.
-        # @param throwable [Exception] - Log4J Throwable. Will be logged as part
-        #                                of Log4j message when given unexpected type.
-        # @yield [] Return string or Exception. Exception will be used as Log4j
-        #           throwable when no other argments are provided or as part of
-        #           message otherwise.
-        # @return [Array<String, Java::Throwable>]
-        def convert(object = nil, throwable = nil)
+        # @param object [String | Exception] - Correlates to the `progname` param of the
+        #     ruby Logger. Exception passed to Log4j as throwable when no other
+        #     arguments are provided.
+        # @yield [] Return object to be used as the :msg (See Ruby ::Logger). Exceptions
+        #    will be used as Throwable arg to log4j.
+        #
+        # @return [Array<Object, Object, Java::Throwable>] -
+        #   Ruby Logger progname, Ruby Logger msg, throwable for log4j
+        def convert(object = nil)
           # This implementation is very complex in order to support
-          # all the potential argument permutations gracefully.
           yielded_val = block_given? ? yield : nil
 
-          progname = nil
-          log4j_throwable = nil
-          msg_parts = []
-
-          if exception?(throwable)
-            progname = object
-            log4j_throwable = throwable
-            msg_parts << yielded_val
-          elsif exception?(object) && throwable.nil? && yielded_val.nil?
-            log4j_throwable = object
-            msg_parts.concat([yielded_val])
-          else
-            progname = object
-            if exception?(yielded_val) && object.nil? && throwable.nil?
-              log4j_throwable = yielded_val
-              msg_parts.concat([throwable])
-            else
-              msg_parts.concat([throwable, yielded_val])
-            end
-          end
-
-          [build_msg(progname, msg_parts, log4j_throwable), log4j_throwable.to_java]
+          exception = exception(yielded_val) || exception(object)
+          msg = yielded_val || object || exception
+          [progname(object, yielded_val), msg, exception&.to_java]
         end
 
         private
 
-        def exception?(o)
-          o.is_a?(::Exception) || o.is_a?(Java::java.lang.Throwable)
+        def progname(object, yielded_val)
+          object && yielded_val ? object : nil
         end
 
-        def build_msg(progname, msg_parts, throwable)
-          filtered_parts = msg_parts.compact
-          effective_progname = progname.nil? && throwable ? throwable.message : progname
-
-          return effective_progname.to_s if filtered_parts.empty?
-
-          if effective_progname.nil?
-            filtered_parts.join(' ').to_s
-          else
-            "#{effective_progname}: #{filtered_parts.join(' ')}"
-          end
+        def exception(obj)
+          obj.is_a?(::Exception) || obj.is_a?(Java::java.lang.Throwable) ? obj : nil
         end
       end
     end

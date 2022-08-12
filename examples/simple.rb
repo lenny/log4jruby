@@ -8,6 +8,7 @@ logger = Log4jruby::Logger.get('test', tracing: true, level: :debug)
 
 logger.debug('hello world')
 
+# Example class
 class MyClass
   attr_reader :logger
 

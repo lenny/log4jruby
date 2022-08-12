@@ -18,4 +18,6 @@ end
 
 # https://github.com/lenny/log4jruby/issues/14
 # https://github.com/jruby/jruby/wiki/Persistence
-Java::org.apache.log4j.Logger.__persistent__ = true if Java::org.apache.log4j.Logger.respond_to?(:__persistent__)
+if Java::org.apache.log4j.Logger.respond_to?(:__persistent__)
+  Java::org.apache.log4j.Logger.__persistent__ = true
+end

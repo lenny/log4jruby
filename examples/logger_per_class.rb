@@ -8,6 +8,7 @@ logger = Log4jruby::Logger.root
 logger.level = :debug
 
 module MyModule
+  # Example class A
   class A
     enable_logger
 
@@ -22,6 +23,7 @@ module MyModule
     end
   end
 
+  # Example class B
   class B < A
   end
 end
