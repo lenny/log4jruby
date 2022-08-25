@@ -36,7 +36,7 @@ module Log4jruby
         end
 
         def mdc
-          Java::org.apache.log4j.MDC
+          Java::org.apache.logging.log4j.ThreadContext
         end
       end
     end
