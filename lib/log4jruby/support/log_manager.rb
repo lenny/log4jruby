@@ -8,9 +8,10 @@ module Log4jruby
     class LogManager
       @loggers = {}
       @mutex = Mutex.new.freeze
-      @logger_class = nil
 
       class << self
+        attr_reader :logger_class
+
         def configure(logger_class:)
           @logger_class = logger_class
         end

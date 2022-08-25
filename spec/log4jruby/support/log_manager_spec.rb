@@ -18,9 +18,15 @@ end
 
 LogManager = Log4jruby::Support::LogManager
 
-Log4jruby::Support::LogManager.configure(logger_class: LoggerClass)
-
 describe 'Log4jruby::Support::LogManager' do
+  around do |example|
+    logger_class = LogManager.logger_class
+    LogManager.configure(logger_class: LoggerClass)
+    example.run
+    LogManager.reset
+    LogManager.configure(logger_class: logger_class)
+  end
+
   describe '.get_or_create(name)' do
     it 'creates logger when none already exists' do
       expect(LogManager.get_or_create('foo').name).to eq('foo')
