@@ -14,6 +14,7 @@ shared_context 'log capture', log_capture: true do
     # log4j2 logger attributes are inherited from config only
     # i.e. loggers will not inherit properties from private config on rootLogger
     root_config = Java::org.apache.logging.log4j.LogManager.rootLogger.get
+    root_config.clearAppenders
     root_config.level = Java::org.apache.logging.log4j.Level::DEBUG
     root_config.addAppender(appender, nil, nil)
   end
