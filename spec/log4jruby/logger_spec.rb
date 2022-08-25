@@ -114,13 +114,13 @@ module Log4jruby
       def create_logger_config(name:, level:)
         config = Log4j.LogManager.getContext(false).configuration
         logger_config = Log4j.core.config.LoggerConfig
-                              .createLogger(false,
-                                            level,
-                                            name,
-                                            "true",
-                                            [].to_java(Log4j.core.config.AppenderRef),
-                                            [].to_java(Log4j.core.config.Property),
-                                            config, nil)
+                             .createLogger(false,
+                                           level,
+                                           name,
+                                           'true',
+                                           [].to_java(Log4j.core.config.AppenderRef),
+                                           [].to_java(Log4j.core.config.Property),
+                                           config, nil)
         config.addLogger(name, logger_config)
       end
 

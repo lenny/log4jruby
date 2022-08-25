@@ -33,7 +33,7 @@ module Log4jruby
           when :fatal, ::Logger::FATAL
             Java::org.apache.logging.log4j.Level::FATAL
           when nil
-            #noop
+            # noop
           else
             raise NotImplementedError
           end

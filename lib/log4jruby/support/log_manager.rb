@@ -60,5 +60,3 @@ module Log4jruby
     end
   end
 end
-
-

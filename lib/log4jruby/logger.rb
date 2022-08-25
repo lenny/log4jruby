@@ -90,9 +90,7 @@ module Log4jruby
     end
 
     # return org.apache.logging.log4j.Logger instance backing this Logger
-    def log4j_logger
-      @log4j_logger
-    end
+    attr_reader :log4j_logger
 
     def debug?
       @log4j_logger.isEnabled(Java::org.apache.logging.log4j.Level::DEBUG)
