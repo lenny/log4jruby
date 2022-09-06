@@ -7,11 +7,11 @@ module Log4jruby
     # Utility methods for dealing with log levels
     class Levels
       LOG4J_LEVELS = {
-        Java::org.apache.log4j.Level::DEBUG => ::Logger::DEBUG,
-        Java::org.apache.log4j.Level::INFO => ::Logger::INFO,
-        Java::org.apache.log4j.Level::WARN => ::Logger::WARN,
-        Java::org.apache.log4j.Level::ERROR => ::Logger::ERROR,
-        Java::org.apache.log4j.Level::FATAL => ::Logger::FATAL
+        Java::org.apache.logging.log4j.Level::DEBUG => ::Logger::DEBUG,
+        Java::org.apache.logging.log4j.Level::INFO => ::Logger::INFO,
+        Java::org.apache.logging.log4j.Level::WARN => ::Logger::WARN,
+        Java::org.apache.logging.log4j.Level::ERROR => ::Logger::ERROR,
+        Java::org.apache.logging.log4j.Level::FATAL => ::Logger::FATAL
       }.freeze
 
       class << self
@@ -23,15 +23,17 @@ module Log4jruby
         def log4j_level(ruby_logger_level)
           case ruby_logger_level
           when :debug, ::Logger::DEBUG
-            Java::org.apache.log4j.Level::DEBUG
+            Java::org.apache.logging.log4j.Level::DEBUG
           when :info, ::Logger::INFO
-            Java::org.apache.log4j.Level::INFO
+            Java::org.apache.logging.log4j.Level::INFO
           when :warn, ::Logger::WARN
-            Java::org.apache.log4j.Level::WARN
+            Java::org.apache.logging.log4j.Level::WARN
           when :error, ::Logger::ERROR
-            Java::org.apache.log4j.Level::ERROR
+            Java::org.apache.logging.log4j.Level::ERROR
           when :fatal, ::Logger::FATAL
-            Java::org.apache.log4j.Level::FATAL
+            Java::org.apache.logging.log4j.Level::FATAL
+          when nil
+            # noop
           else
             raise NotImplementedError
           end

@@ -6,7 +6,6 @@ module Log4jruby
   end
 end
 
-require 'log4jruby/support/bootstrap'
 require 'log4jruby/logger'
 require 'log4jruby/logger_for_class'
 

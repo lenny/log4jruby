@@ -1,13 +1,12 @@
 # Log4jruby
 
-`Log4jruby` provides an interface mostly compatible with the standard ruby [Logger](http://ruby-doc.org/core/classes/Logger.html) but backed by  [Log4j](http://logging.apache.org/log4j/1.2/apidocs/index.html). This makes the granular log output configuration, stacktrace output, and other facilities of `log4j` available to Java and Ruby code alike. For projects that extend/integrate Java already dependent on `log4j`, it allows log configuration for Java and Ruby code in one spot.
+`Log4jruby` provides an interface mostly compatible with the standard ruby [Logger](http://ruby-doc.org/core/classes/Logger.html) but backed by  [Log4j 2](https://logging.apache.org/log4j/2.x/).
+This makes the granular log output configuration, stacktrace output, and other facilities of `log4j` available to Java and Ruby code alike. For projects that extend/integrate Java already dependent on `log4j`, it allows log configuration for Java and Ruby code in one spot.
 
-_Note*_ Currently log4j 1.2 only
-
-* Automatic stacktrace output (including nested causes) for logged exceptions
-* Configure Java and Ruby logging together (e.g a single `log4j.properties` file) and gain `log4j` features such as runtime output targets for Ruby code.
+* Automatic stacktrace output (including nested causes) for logged Java and Ruby exceptions
+* Configure Java and Ruby logging together (e.g a single `log4j2.properties` file) and gain `log4j` features such as runtime output targets for Ruby code.
 * Ability to configure logging per distinct logger name (typically a class)
-* Supports inclusion of filename, line number, and method name in log messages via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html). Note: `tracing` must be enabled.
+* Supports inclusion of filename, line number, and method name in log messages via [ThreadContext](https://logging.apache.org/log4j/2.x/manual/thread-context.html). Note: `tracing` must be enabled.
 * High level support for class based logging via the `enable_logger` macro. 
 * Compatible with the `Rails` logging.
 
@@ -43,21 +42,25 @@ logger.debug('something')
 
 Log4jruby logger names are prefixed with `.jruby`.
 
-e.g. `log4j.properties`
+e.g. `log4j2.properties`
+
+See [examples/log4j2.properties](examples/log4j2.properties) for complete example
 
 ```ini
  ...
- log4j.logger.jruby=info,Console
- log4j.logger.jruby.MyClass=debug
- log4j.logger.jruby.my.logger=error
+ # JRuby logger
+logger.jruby.name = jruby
+logger.jruby.level = debug
+logger.jruby.additivity = false
+logger.jruby.appenderRef.stdout.ref = JRuby
 ```
 
-Inclusion of filename, line number, and method name in log messages via [MDC](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html)
+Inclusion of filename, line number, and method name in log messages via [ThreadContext](https://logging.apache.org/log4j/2.x/manual/thread-context.html)
 
 e.g.
 
 ```ini
-log4j.appender.Ruby.layout.ConversionPattern=%5p %.50X{fileName} %X{methodName}:%X{lineNumber} - %m%n
+appender.jruby.layout.pattern = %d %5p %c %X{methodName}:%X{lineNumber} %m%throwable%n
 ```
 
 enable tracing globally
@@ -81,8 +84,8 @@ produces log statements like:
 Exceptions are logged with backtraces
 
 ```bash
-> bundle exec ruby ./examples/nested_ruby_exceptions.rb
-# 2022-08-12 17:38:44,743 ERROR jruby.test <main>:31 -- : raised from foo org.jruby.exceptions.RuntimeError: (RuntimeError) raised from foo
+> ruby ./examples/nested_ruby_exceptions.rb
+2022-08-25 19:50:47,050 ERROR jruby.test <main>:31 -- : raised from foo org.jruby.exceptions.RuntimeError: (RuntimeError) raised from foo
 	at $_dot_.examples.nested_ruby_exceptions.foo(./examples/nested_ruby_exceptions.rb:15)
 	at $_dot_.examples.nested_ruby_exceptions.<main>(./examples/nested_ruby_exceptions.rb:29)
 Caused by: org.jruby.exceptions.RuntimeError: (RuntimeError) raised from bar
@@ -93,6 +96,7 @@ Caused by: org.jruby.exceptions.RuntimeError: (RuntimeError) raised from baz
 	at $_dot_.examples.nested_ruby_exceptions.baz(./examples/nested_ruby_exceptions.rb:25)
 	at $_dot_.examples.nested_ruby_exceptions.bar(./examples/nested_ruby_exceptions.rb:19)
 	... 2 more
+
 
 ```
 
@@ -108,18 +112,18 @@ logger.warn { exception }
 logger.error(msg) { exception)
 ```
 
-See more in [log4jruby/examples](examples).
+See additional examples in [log4jruby/examples](examples).
 
 
 ## Configuration
 
-Configuring log4j is left to the client via the [standard log4j configuration process](https://logging.apache.org/log4j/1.2/manual.html). 
+Configuring log4j is left to the client via the [standard log4j configuration process](https://logging.apache.org/log4j/2.x/manual/configuration.html).
 
 E.g.
 
-Create a `log4j.properties` file and make sure it is available in your classpath. 
+Create a `log4j2.properties` file and make sure it is available in your classpath.
 
-The log4j 1.2 jar must be found in your classpath when `log4jruby` is loaded. 
+The log4j-api-2.n.jar and log4j-core-2.n.jars must be found in your classpath when `log4jruby` is loaded.
 
 * Place files somewhere already in your classpath such as `$TOMCAT/lib` for Tomcat. 
 * Configure classpath via `JAVA_OPTS`
@@ -145,7 +149,7 @@ Log4jruby passes the same arguments to a `formatter` as would be passed using th
 
 The default Log4jruby formatter outputs `progname` and `msg` only (as opposed to the default formatter of the Ruby Logger).
 Severity, timestamp, and backtraces are handed according to your `Log4j` configuration. 
-E.g. [EnhancedPatternLayout](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/EnhancedPatternLayout.html).
+E.g. [PatternLayout](https://logging.apache.org/log4j/2.x/manual/layouts.html).
 
 The output of the `formatter` is passed as the `message` parameter of the [Log4j log methods](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log(org.apache.log4j.Priority,%20java.lang.Object).
 
@@ -158,7 +162,7 @@ Install log4j for tests and examples
 ```
 e.g.
 
-bundle exec ruby ./examples/simple.rb
+ruby ./examples/simple.rb
 ```
 
 ### IRB

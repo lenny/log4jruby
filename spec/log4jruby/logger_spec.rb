@@ -4,11 +4,14 @@ require 'spec_helper'
 
 require 'log4jruby'
 
-MDC = Java::org.apache.log4j.MDC
+ThreadContext = Java::org.apache.logging.log4j.ThreadContext
+Log4j = Java::org.apache.logging.log4j
 
 module Log4jruby
   describe Logger do
-    before { Logger.reset }
+    before do
+      Support::LogManager.reset
+    end
 
     subject { Logger.get('Test', level: :debug) }
 
@@ -31,7 +34,7 @@ module Log4jruby
 
       it 'should accept attributes hash' do
         logger = Logger.get("loggex#{object_id}", level: :fatal, tracing: true)
-        expect(logger.log4j_logger.level).to eq(Java::org.apache.log4j.Level::FATAL)
+        expect(logger.log4j_logger.level).to eq(Log4j.Level::FATAL)
         expect(logger.tracing).to eq(true)
       end
 
@@ -69,7 +72,7 @@ module Log4jruby
     end
 
     specify 'the backing log4j Logger should be accessible via :log4j_logger' do
-      expect(Logger.get('X').log4j_logger).to be_instance_of(Java::org.apache.log4j.Logger)
+      expect(Logger.get('X').log4j_logger).to be_instance_of(Log4j.core.Logger)
     end
 
     describe 'Rails logger compatabity' do
@@ -108,14 +111,35 @@ module Log4jruby
     end
 
     describe '#level' do
+      def create_logger_config(name:, level:)
+        config = Log4j.LogManager.getContext(false).configuration
+        logger_config = Log4j.core.config.LoggerConfig
+                             .createLogger(false,
+                                           level,
+                                           name,
+                                           'true',
+                                           [].to_java(Log4j.core.config.AppenderRef),
+                                           [].to_java(Log4j.core.config.Property),
+                                           config, nil)
+        config.addLogger(name, logger_config)
+      end
+
       it 'returns ::Logger constant values' do
         subject.level = ::Logger::DEBUG
         expect(subject.level).to eq(::Logger::DEBUG)
       end
 
-      it 'inherits parent level when not explicitly set' do
-        Logger.get('Foo', level: :fatal)
-        expect(Logger.get('Foo::Bar').level).to eq(::Logger::FATAL)
+      it 'inherits configured parent level when not explicitly set' do
+        create_logger_config(name: 'jruby.Foo', level: Log4j.Level::DEBUG)
+        expect(Logger.get('Foo::Bar').level).to eq(::Logger::DEBUG)
+      end
+
+      # log4j2 logger attributes are inherited from configs only
+      # as opposed to Logger instances
+      it 'does not inherit parent instance config' do
+        create_logger_config(name: 'jruby.Foo', level: Log4j.Level::DEBUG)
+        expect(Logger.get('Foo', level: :fatal).level).to eq(::Logger::FATAL)
+        expect(Logger.get('Foo::Bar').level).to eq(::Logger::DEBUG)
       end
     end
 
@@ -147,13 +171,13 @@ module Log4jruby
     %i[debug info warn].each do |level|
       describe "##{level} with block argument" do
         it "should log return value of block argument if #{level} is enabled" do
-          expect(log4j).to receive(:isEnabledFor).and_return(true)
+          expect(log4j).to receive(:isEnabled).and_return(true)
           expect(log4j).to receive(level).with(/test/, nil)
           subject.send(level) { 'test' }
         end
 
         it "should not evaluate block argument if #{level} is not enabled" do
-          expect(log4j).to receive(:isEnabledFor).and_return(false)
+          expect(log4j).to receive(:isEnabled).and_return(false)
           subject.send(level) { raise 'block was called' }
         end
       end
@@ -189,47 +213,47 @@ module Log4jruby
         subject.tracing = true
       end
 
-      it 'should set MDC lineNumber for duration of invocation' do
+      it 'should set ThreadContext lineNumber for duration of invocation' do
         line = __LINE__ + 5
         expect(log4j).to receive(:debug) do
-          expect(MDC.get('lineNumber')).to eq(line.to_s)
+          expect(ThreadContext.get('lineNumber')).to eq(line.to_s)
         end
 
         subject.debug('test')
 
-        expect(MDC.get('lineNumber')).to be_nil
+        expect(ThreadContext.get('lineNumber')).to be_nil
       end
 
-      it 'should set MDC fileName for duration of invocation' do
+      it 'should set ThreadContext fileName for duration of invocation' do
         expect(log4j).to receive(:debug) do
-          expect(MDC.get('fileName')).to eq(__FILE__)
+          expect(ThreadContext.get('fileName')).to eq(__FILE__)
         end
 
         subject.debug('test')
 
-        expect(MDC.get('fileName')).to be_nil
+        expect(ThreadContext.get('fileName')).to be_nil
       end
 
-      it 'should not push caller info into MDC if logging level is not enabled' do
-        allow(log4j).to receive(:isEnabledFor).and_return(false)
+      it 'should not push caller info into ThreadContext if logging level is not enabled' do
+        allow(log4j).to receive(:isEnabled).and_return(false)
 
-        allow(MDC).to receive(:put).and_raise('MDC was modified')
+        allow(ThreadContext).to receive(:put).and_raise('ThreadContext was modified')
 
         subject.debug('test')
       end
 
-      it 'should set MDC methodName for duration of invocation' do
+      it 'should set ThreadContext methodName for duration of invocation' do
         def some_method
           subject.debug('test')
         end
 
         expect(log4j).to receive(:debug) do
-          expect(MDC.get('methodName')).to eq('some_method')
+          expect(ThreadContext.get('methodName')).to eq('some_method')
         end
 
         some_method
 
-        expect(MDC.get('methodName')).to be_nil
+        expect(ThreadContext.get('methodName')).to be_nil
       end
     end
 
