@@ -2,10 +2,16 @@
 
 ## v3.0.0.rc1
 
-* JRuby 9.3.x/Ruby 2.6 support
+* JRuby 9.3.x/Ruby 2.6 support - Ruby >= 2.6.8 now required
+* Updated for Log4j2
+  Note:
+  > In Log4j 1.x the Logger Hierarchy was maintained through a relationship between Loggers. 
+    In Log4j 2 this relationship no longer exists. Instead, the hierarchy is maintained in the 
+    relationship between LoggerConfig objects. 
+  from the [Log4j 2 Architecture page](https://logging.apache.org/log4j/2.x/manual/architecture.html)
 * Formatters and logging output
    * Consistent treatment for Ruby and Java exceptions - Previously, ruby exception backtraces were
-  not passed directly to Log4j. Instead a backtrace was generated and included in the exception
+  not passed directly to Log4j. Instead a backtrace string was generated and included in the exception
   message. JRuby now handles mapping Ruby exceptions/errors to Java exceptions that can be
   passed directly as the `Throwable` parameter to Log4j.
    * Formatter parity with the standard Ruby Logger - Custom formatters
@@ -13,18 +19,19 @@
       Ruby Logger docs](https://ruby-doc.org/stdlib-2.7.0/libdoc/logger/rdoc/Logger.html)
  now receive the same arguments from Log4Jruby as they would from the standard Ruby Logger
  given the same logging invocation.
-   * Default formatter - The [standard Ruby Logger]((https://ruby-doc.org/stdlib-2.7.0/libdoc/logger/rdoc/Logger.html)
+   * Default formatter - The [standard Ruby Logger](https://ruby-doc.org/stdlib-2.7.0/libdoc/logger/rdoc/Logger.html)
      uses a default formatter that outputs backtraces (without nested causes). Log4jruby now uses
      a default formatter that outputs `progname` and `msg` only. Severity and timestamp are output
-     according to your Log4j configuration. E.g. [EnhancedPatternLayout](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/EnhancedPatternLayout.html)
-   * The output of the `formatter` is passed as the `message` parameter of the [Log4j log methods](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log(org.apache.log4j.Priority,%20java.lang.Object). 
+     according to your Log4j configuration. E.g. [PatternLayout](https://logging.apache.org/log4j/2.x/manual/layouts.html)
+   * The output of the `formatter` is passed as the `message` parameter of the 
+     [Log4j log methods](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html) 
 * Nested ruby exceptions are now handled - E.g. The backtrace output from `logger.error { ruby_error_with_nested_causes }` will
-  included nested causes for both Ruby and Java exceptions.
+  include nested causes for both Ruby and Java exceptions.
+* Log4jruby no longer utilizes deprecated [JRuby Persistence](https://github.com/jruby/jruby/wiki/Persistence)
 * Development
    * Rubocop introduced and violations squashed
    * Mavenized log4j development dependency, added `dev:java_deps` Rake task, and removed bundled log4j jar
-
-
+   
 ## v2.0.1
 
 * JRuby 9K compatibility - https://github.com/lenny/log4jruby/issues/14
