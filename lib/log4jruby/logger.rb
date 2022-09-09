@@ -173,8 +173,11 @@ module Log4jruby
     end
 
     def new_default_formatter
-      Support::JrubyVersion.native_ruby_stacktraces_supported? ? Support::Formatter.new :
+      if Support::JrubyVersion.native_ruby_stacktraces_supported?
+        Support::Formatter.new
+      else
         Support::LegacyShimFormatter.new
+      end
     end
   end
 end
