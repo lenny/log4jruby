@@ -17,7 +17,7 @@ module Log4jruby
         end
 
         def get_or_create(name)
-          raise 'name required' if name.to_s.match?(/^\s+$/)
+          raise 'name required' if name.to_s.match(/^\s+$/)
 
           @mutex.synchronize do
             @loggers[name] ||= new_logger(name)
