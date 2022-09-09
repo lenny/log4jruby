@@ -4,6 +4,10 @@ require 'log4jruby/support/log4j_args'
 require 'log4jruby/support/levels'
 require 'log4jruby/support/location'
 require 'log4jruby/support/log_manager'
+require 'log4jruby/support/formatter'
+require 'log4jruby/support/legacy_shim_formatter'
+require 'log4jruby/support/jruby_version'
+
 require 'logger'
 
 module Log4jruby
@@ -121,7 +125,7 @@ module Log4jruby
       return @formatter if defined?(@formatter)
 
       @formatter = if self == Logger.root
-                     ->(_severity, _datetime, progname, msg) { "-- #{progname}: #{msg}" }
+                     new_default_formatter
                    else
                      parent.formatter
                    end
@@ -166,6 +170,11 @@ module Log4jruby
       else
         @log4j_logger.send(level, msg, throwable)
       end
+    end
+
+    def new_default_formatter
+      Support::JrubyVersion.native_ruby_stacktraces_supported? ? Support::Formatter.new :
+        Support::LegacyShimFormatter.new
     end
   end
 end

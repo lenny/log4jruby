@@ -86,7 +86,7 @@ module Log4jruby
         end
 
         describe '02: () { throwable }' do
-          let(:e) { RuntimeError.new('foo') }
+          let(:e) { Java::java.lang.RuntimeException.new('foo') }
 
           it_returns(progname: nil, msg: 'throwable', throwable: 'throwable') do
             expect_match(Log4jArgs.convert { e }, progname: nil, msg: e, throwable: e)
@@ -108,7 +108,7 @@ module Log4jruby
         end
 
         describe '04: (throwable)' do
-          let(:e1) { RuntimeError.new('exceptionmessage') }
+          let(:e1) { Java::java.lang.RuntimeException.new('exceptionmessage') }
 
           it_returns(progname: nil, msg: 'throwable', throwable: 'throwable') do
             expect_match(Log4jArgs.convert(e1),
@@ -121,8 +121,8 @@ module Log4jruby
         end
 
         describe '05: (throwable1) { throwable2 }' do
-          let(:e1) { RuntimeError.new('error1') }
-          let(:e2) { RuntimeError.new('error2') }
+          let(:e1) { Java::java.lang.RuntimeException.new('error1') }
+          let(:e2) { Java::java.lang.RuntimeException.new('error2') }
 
           it_returns(progname: 'throwable1', msg: 'throwable2', throwable: 'throwable2') do
             expect_match(Log4jArgs.convert(e1) { e2 },
@@ -135,7 +135,7 @@ module Log4jruby
         end
 
         describe '06: (throwable) { non-throwable }' do
-          let(:e1) { RuntimeError.new('error1') }
+          let(:e1) { Java::java.lang.RuntimeException.new('error1') }
 
           it_returns(progname: 'throwable', msg: 'non-throwable', throwable: 'throwable') do
             expect_match(Log4jArgs.convert(e1) { :nonthrowable },
@@ -159,7 +159,7 @@ module Log4jruby
         end
 
         describe '08: (non-throwable) { throwable }' do
-          let(:e1) { RuntimeError.new('error1') }
+          let(:e1) { Java::java.lang.RuntimeException.new('error1') }
 
           it_returns(progname: 'non-throwable', msg: 'throwable', throwable: 'throwable') do
             expect_match(Log4jArgs.convert('non-throwable') { e1 },
@@ -188,10 +188,18 @@ module Log4jruby
           expect(throwable).to be_instance_of(Java::java.lang.NumberFormatException)
         end
 
-        it 'returns wrapped ruby exceptions' do
-          e = RuntimeError.new('foo')
-          _, _, throwable = Log4jArgs.convert(e)
-          expect(throwable).to be_kind_of(Java::java.lang.Exception)
+        if JrubyVersion.native_ruby_stacktraces_supported?
+          it 'maps ruby exceptions to log4j Throwable arg' do
+            e = RuntimeError.new('foo')
+            _, _, throwable = Log4jArgs.convert(e)
+            expect(throwable).to be_kind_of(Java::java.lang.Exception)
+          end
+        else
+          it 'does not map ruby exceptions to log4j Throwable arg' do
+            e = RuntimeError.new('foo')
+            _, _, throwable = Log4jArgs.convert(e)
+            expect(throwable).to eq(nil)
+          end
         end
       end
     end
