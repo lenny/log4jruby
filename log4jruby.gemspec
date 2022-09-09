@@ -29,6 +29,6 @@ Gem::Specification.new do |gem|
   gem.license = 'MIT'
 
   # jruby >= 9.3.0.0
-  gem.required_ruby_version = '~> 2.6.8'
+  gem.required_ruby_version = '~> 2.3.3'
   gem.metadata['rubygems_mfa_required'] = 'true'
 end
