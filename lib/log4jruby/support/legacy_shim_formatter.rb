@@ -19,23 +19,15 @@ module Log4jruby
         when ::String
           msg
         when ::Exception
-          stringify_exception_chain(msg)
+          exception2str(msg)
         else
           msg.inspect
         end
       end
 
-      def stringify_exception_chain(exception)
-        if exception.cause
-          "#{stringify_exception(exception)}\nCaused by: " \
-            "#{stringify_exception_chain(exception.cause)}"
-        else
-          stringify_exception(exception)
-        end
-      end
-
-      def stringify_exception(exception)
-        "#{exception.message} (#{exception.class})\n\t#{exception.backtrace&.join("\n\t")}"
+      def exception2str(exception)
+        "#{exception.message} (#{exception.class})\n\t#{exception.backtrace&.join("\n\t")}" \
+          "#{"\nCaused by: #{exception2str(exception.cause)}" if exception.cause}"
       end
     end
   end
