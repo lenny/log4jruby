@@ -1,5 +1,9 @@
 # log4jruby Changelog
 
+## v3.0.0.rc2
+
+* Restored support for JRuby 9.1.x/Ruby 2.3
+
 ## v3.0.0.rc1
 
 * JRuby 9.3.x/Ruby 2.6 support - Ruby >= 2.6.8 now required
