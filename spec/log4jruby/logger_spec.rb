@@ -150,13 +150,24 @@ module Log4jruby
           subject.send(level, 7)
         end
 
-        it 'should log ruby exceptions as jruby adapted java RuntinmeExceptions' do
-          expect(log4j).to receive(level).with(/some error/,
-                                               kind_of(Java::java.lang.RuntimeException))
-          begin
-            raise 'some error'
-          rescue StandardError => e
-            subject.send(level, e)
+        if Support::JrubyVersion.native_ruby_stacktraces_supported?
+          it 'sends jruby adapted ruby exceptions directly to log4j' do
+            expect(log4j).to receive(level).with(/some error/,
+                                                 kind_of(Java::java.lang.RuntimeException))
+            begin
+              raise 'some error'
+            rescue StandardError => e
+              subject.send(level, e)
+            end
+          end
+        else
+          it 'does not send ruby exceptions directly to log4j' do
+            expect(log4j).to receive(level).with(/some error/, nil)
+            begin
+              raise 'some error'
+            rescue StandardError => e
+              subject.send(level, e)
+            end
           end
         end
 

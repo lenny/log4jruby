@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'log4jruby/support/jruby_version'
+
 module Log4jruby
   module Support
     # Translate logger args for use by Ruby Logger formatter and log4j.
@@ -37,7 +39,10 @@ module Log4jruby
         end
 
         def exception(obj)
-          obj.is_a?(::Exception) || obj.is_a?(Java::java.lang.Throwable) ? obj : nil
+          if (JrubyVersion.native_ruby_stacktraces_supported? && obj.is_a?(::Exception)) ||
+             obj.is_a?(Java::java.lang.Throwable)
+            obj
+          end
         end
       end
     end

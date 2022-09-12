@@ -12,17 +12,17 @@ logger = Log4jruby::Logger.get('test', tracing: true, level: :debug)
 def foo
   bar
 rescue StandardError
-  raise 'raised from foo'
+  raise 'foo error'
 end
 
 def bar
   baz
 rescue StandardError
-  raise 'raised from bar'
+  raise 'bar error'
 end
 
 def baz
-  raise 'raised from baz'
+  raise 'baz error'
 end
 
 begin

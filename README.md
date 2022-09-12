@@ -151,6 +151,10 @@ The default Log4jruby formatter outputs `progname` and `msg` only (as opposed to
 Severity, timestamp, and backtraces are handed according to your `Log4j` configuration. 
 E.g. [PatternLayout](https://logging.apache.org/log4j/2.x/manual/layouts.html).
 
+* For JRuby versions < 9.3, Ruby exceptions are not passed directly to the `Throwable` arg of log4j. Instead,
+  backtraces are included in the log message by the default formatter. This means that `%throwable` in
+  the log4j config will not affect ruby exceptions for Jruby < 9.3.
+
 The output of the `formatter` is passed as the `message` parameter of the [Log4j log methods](https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log(org.apache.log4j.Priority,%20java.lang.Object).
 
 ## Development
