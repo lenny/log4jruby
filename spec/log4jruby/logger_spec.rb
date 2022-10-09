@@ -220,6 +220,9 @@ module Log4jruby
             .and_return(false)
         end
 
+        # Can't use a formatter to stringify exceptions because
+        # [ActiveSupport::TaggedLogging breaks formatters](https://github.com/lenny/log4jruby/issues/27)
+        # stringifies arguments itself
         it 'stringifies exceptions before invoking formatter' do
           formatter = double('formatter')
           expect(formatter).to receive(:call).with(anything, anything, 'rescued error',
