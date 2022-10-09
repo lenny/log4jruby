@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
+require 'logger'
+
 require 'log4jruby/support/log4j_args'
 require 'log4jruby/support/levels'
 require 'log4jruby/support/location'
 require 'log4jruby/support/log_manager'
 require 'log4jruby/support/formatter'
-require 'log4jruby/support/legacy_shim_formatter'
 require 'log4jruby/support/jruby_version'
-
-require 'logger'
+require 'log4jruby/support/ruby_backtrace_shim'
 
 module Log4jruby
   # Author::    Lenny Marks
@@ -125,7 +125,7 @@ module Log4jruby
       return @formatter if defined?(@formatter)
 
       @formatter = if self == Logger.root
-                     new_default_formatter
+                     Support::Formatter.new
                    else
                      parent.formatter
                    end
@@ -160,6 +160,9 @@ module Log4jruby
 
     def send_to_log4j(level, object, &block)
       progname, msg, throwable = Support::Log4jArgs.convert(object, &block)
+      unless  Support::JrubyVersion.native_ruby_stacktraces_supported?
+        msg = Support::RubyBacktraceShim.adapt(msg)
+      end
       if (f = formatter)
         msg = f.call(level, Time.now, progname, msg)
       end
@@ -169,14 +172,6 @@ module Log4jruby
         end
       else
         @log4j_logger.send(level, msg, throwable)
-      end
-    end
-
-    def new_default_formatter
-      if Support::JrubyVersion.native_ruby_stacktraces_supported?
-        Support::Formatter.new
-      else
-        Support::LegacyShimFormatter.new
       end
     end
   end

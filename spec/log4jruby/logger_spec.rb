@@ -194,6 +194,49 @@ module Log4jruby
       end
     end
 
+    describe 'exception stringification', log_capture: true do
+      context 'with native ruby backtraces supported' do
+        before do
+          allow(Support::JrubyVersion).to receive(:native_ruby_stacktraces_supported?)
+            .and_return(true)
+        end
+
+        it 'passes exceptions to formatter intact' do
+          formatter = double('formatter')
+          expect(formatter).to receive(:call).with(anything, anything, 'rescued error',
+                                                   instance_of(RuntimeError))
+          logger = Logger.get('loggername', formatter: formatter)
+          begin
+            raise 'some error'
+          rescue StandardError => e
+            logger.error('rescued error') { e }
+          end
+        end
+      end
+
+      context 'without support for native ruby backtraces' do
+        before do
+          allow(Support::JrubyVersion).to receive(:native_ruby_stacktraces_supported?)
+            .and_return(false)
+        end
+
+        # Can't use a formatter to stringify exceptions because
+        # [ActiveSupport::TaggedLogging breaks formatters](https://github.com/lenny/log4jruby/issues/27)
+        # stringifies arguments itself
+        it 'stringifies exceptions before invoking formatter' do
+          formatter = double('formatter')
+          expect(formatter).to receive(:call).with(anything, anything, 'rescued error',
+                                                   /#{__FILE__}/)
+          logger = Logger.get('loggername', formatter: formatter)
+          begin
+            raise 'some error'
+          rescue StandardError => e
+            logger.error('rescued error') { e }
+          end
+        end
+      end
+    end
+
     describe '#tracing?', 'should be inherited' do
       it 'should return false with tracing unset anywhere' do
         expect(Logger['A'].tracing?).to eq(false)
