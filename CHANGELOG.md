@@ -1,5 +1,13 @@
 # log4jruby Changelog
 
+## v3.0.0.rc3
+
+* Resolve [missing backtraces with Rails](https://github.com/lenny/log4jruby/issues/27). Stringify
+  exceptions outside of the formatter because `ActiveSupport::TaggedLogging` broke
+  the `LegacyShimFormatter`. The `LegacyShimFormatter` was formerly responsible for outputing
+  backtraces in JRuby < 9.3
+* Optimizations to `Log4jruby::Support::JrubyVersion`
+
 ## v3.0.0.rc2
 
 * Restored support for JRuby 9.1.x/Ruby 2.3
